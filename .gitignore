@@ -24,3 +24,12 @@ ts/.svelte-kit
 docs/_build/
 docs/autoapi/
 .complexipy_cache
+
+# Ankidote mobile (Xcode)
+mobile/AnkidoteMobile/build/
+**/xcuserdata/
+**/*.xcuserstate
+DerivedData/
+
+# gmat_scraper generated calibration artifacts
+gmat_scraper/calibration/artifacts/

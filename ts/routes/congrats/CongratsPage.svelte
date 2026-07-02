@@ -25,12 +25,33 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     const unburyThem = bridgeLink("unbury", tr.schedulingUnburyThem());
     const buriedMsg = tr.schedulingBuriedCardsFound({ unburyThem });
-    const customStudy = bridgeLink("customStudy", tr.schedulingCustomStudy());
-    const customStudyMsg = tr.schedulingHowToCustomStudy({
-        customStudy,
-    });
+
+    // If this deck belongs to Ankidote, offer a link back into the study loop.
+    let ankidoteLoopMsg = "";
+    async function checkAnkidote(): Promise<void> {
+        try {
+            const resp = await fetch("/_anki/ankidoteActive", {
+                method: "POST",
+                headers: { "Content-Type": "application/binary" },
+                body: "{}",
+            });
+            if (!resp.ok) {
+                return;
+            }
+            const data = (await resp.json()) as { isTopicDeck: boolean };
+            if (data.isTopicDeck) {
+                ankidoteLoopMsg = bridgeLink(
+                    "ankidote:loop",
+                    "← Back to your Ankidote study loop",
+                );
+            }
+        } catch {
+            // Not in an Ankidote context; ignore.
+        }
+    }
 
     onMount(() => {
+        checkAnkidote();
         if (refreshPeriodically) {
             setInterval(async () => {
                 try {
@@ -48,6 +69,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <div class="congrats">
             <h1>{congrats}</h1>
 
+            {#if ankidoteLoopMsg}
+                <p class="ankidote-loop">{@html ankidoteLoopMsg}</p>
+            {/if}
+
             <p>{nextLearnMsg}</p>
 
             {#if info.reviewRemaining}
@@ -64,18 +89,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         {@html buriedMsg}
                     </p>
                 {/if}
-
-                {#if !info.isFilteredDeck}
-                    <p>
-                        {@html customStudyMsg}
-                    </p>
-                {/if}
-            {/if}
-
-            {#if info.deckDescription}
-                <div class="description">
-                    {@html info.deckDescription}
-                </div>
             {/if}
         </div>
     </Col>
@@ -93,8 +106,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    .description {
-        border: 1px solid var(--border);
-        padding: 1em;
+    .ankidote-loop {
+        font-weight: 600;
     }
 </style>

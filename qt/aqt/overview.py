@@ -119,6 +119,8 @@ class Overview:
             self.on_unbury()
         elif url == "description":
             self.edit_description()
+        elif url == "ankidote:loop":
+            self.mw.onAnkidoteLoop()
         elif url.lower().startswith("http"):
             openLink(url)
         return False
@@ -281,20 +283,16 @@ class Overview:
     ######################################################################
 
     def _renderBottom(self) -> None:
-        links = [
-            ["O", "opts", tr.actions_options()],
-        ]
+        # Ankidote hides Options / Custom Study / Description from the study
+        # (overview) screen to keep the loop focused; only rebuild/empty for
+        # filtered decks and the unbury action remain.
+        links: list[list[str]] = []
         is_dyn = self.mw.col.decks.current()["dyn"]
         if is_dyn:
             links.append(["R", "refresh", tr.actions_rebuild()])
             links.append(["E", "empty", tr.studying_empty()])
-        else:
-            links.append(["C", "studymore", tr.actions_custom_study()])
-            # links.append(["F", "cram", _("Filter/Cram")])
         if self.mw.col.sched.have_buried():
             links.append(["U", "unbury", tr.studying_unbury()])
-        if not is_dyn:
-            links.append(["", "description", tr.scheduling_description()])
         link_handler = gui_hooks.overview_will_render_bottom(
             self._linkHandler,
             links,

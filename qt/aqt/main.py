@@ -83,7 +83,13 @@ from aqt.webview import AnkiWebView, AnkiWebViewKind
 install_pylib_legacy()
 
 MainWindowState = Literal[
-    "startup", "deckBrowser", "overview", "review", "resetRequired", "profileManager"
+    "startup",
+    "deckBrowser",
+    "overview",
+    "review",
+    "resetRequired",
+    "profileManager",
+    "ankidote",
 ]
 
 
@@ -168,6 +174,17 @@ class AnkiQt(QMainWindow):
     pm: ProfileManagerType
     web: MainWebView
     bottomWeb: BottomWebView
+    # Live Ankidote diagnostic attempt, if one is running (see mediasrv).
+    _ankidote_diag: Any = None
+    # Live Ankidote study-loop problem session, if one is running (see mediasrv).
+    _ankidote_loop: Any = None
+    # Topic whose deck the student is currently studying (drives the loop's
+    # "done for the day -> maybe problems" decision on return, see mediasrv).
+    _ankidote_last_studied: Any = None
+    _ankidote_skipped: set[str] = set()
+    # True once the profile is closing, so the shutdown auto-sync doesn't try to
+    # reload the Ankidote page (see ankidote_on_login).
+    _ankidote_profile_closing: bool = False
 
     def __init__(
         self,
@@ -500,6 +517,9 @@ class AnkiQt(QMainWindow):
         if not self.loadCollection():
             return
 
+        # A previous profile close may have set this; the window is reused across
+        # profiles, so clear it now that a profile is loading again.
+        self._ankidote_profile_closing = False
         self.setup_sound()
         self.flags = FlagManager(self)
         # show main window
@@ -662,7 +682,7 @@ class AnkiQt(QMainWindow):
             self.update_undo_actions()
             gui_hooks.collection_did_load(self.col)
             self.apply_collection_options()
-            self.moveToState("deckBrowser")
+            self.moveToState("ankidote")
         except Exception:
             # dump error to stderr so it gets picked up by errors.py
             traceback.print_exc()
@@ -771,6 +791,122 @@ class AnkiQt(QMainWindow):
 
     def _deckBrowserState(self, oldState: MainWindowState) -> None:
         self.deckBrowser.show()
+
+    def _ankidoteState(
+        self, oldState: MainWindowState, route: str = "ankidote"
+    ) -> None:
+        self.web.set_bridge_command(self._ankidote_link_handler, self)
+        self.toolbar.redraw()
+        self.web.load_sveltekit_page(route)
+        # clear the bottom bar left over from other screens
+        from aqt.toolbar import BottomBar
+
+        BottomBar(self, self.bottomWeb).draw(buf="")
+
+    def _ankidote_link_handler(self, link: str) -> bool:
+        if link == "ankidote:start":
+            tooltip("Your antidote is brewing — the diagnostic arrives soon.")
+        elif link.startswith("ankidote:study:"):
+            # Cards come from a real Anki deck: select it and hand off to the
+            # native overview/reviewer flow (FSRS + scheduler reused as-is).
+            self._ankidote_study_topic(link[len("ankidote:study:") :])
+        elif link == "ankidote:loop":
+            self.onAnkidoteLoop()
+        return False
+
+    def onAnkidoteLoop(self) -> None:
+        self.moveToState("ankidote", "ankidote/loop")
+
+    def _ankidote_reset_session(self) -> None:
+        """Drop in-memory diagnostic/loop state so the flow starts clean."""
+        self._ankidote_diag = None
+        self._ankidote_loop = None
+        self._ankidote_last_studied = None
+        self._ankidote_skipped = set()
+
+    def _ankidote_mark_closing(self) -> None:
+        self._ankidote_profile_closing = True
+
+    def ankidote_on_logout(self) -> None:
+        """Restart the Ankidote flow at the diagnostic on AnkiWeb logout.
+
+        The synced state stays untouched in the collection (and in the cloud);
+        we only clear the local-only scratch and in-memory session so a
+        logged-out user sees onboarding from zero. Logging back in restores the
+        account's synced data via ``ankidote_on_login``.
+        """
+        from aqt.mediasrv import _ANKIDOTE_SCRATCH_KEY
+
+        if self.pm.profile is not None:
+            self.pm.profile.pop(_ANKIDOTE_SCRATCH_KEY, None)
+        self._ankidote_reset_session()
+        if self.state == "ankidote":
+            self.moveToState("ankidote")
+
+    def ankidote_on_login(self) -> None:
+        """Discard the logged-out scratch so synced account data takes over.
+
+        Runs after every sync (including the one right after login). Skipped
+        while the profile is closing, since the close-time auto-sync also fires
+        ``sync_did_finish`` and reloading a page during shutdown is pointless.
+        """
+        from aqt.mediasrv import _ANKIDOTE_SCRATCH_KEY
+
+        if getattr(self, "_ankidote_profile_closing", False):
+            return
+        if self.pm.profile is not None:
+            self.pm.profile.pop(_ANKIDOTE_SCRATCH_KEY, None)
+        self._ankidote_reset_session()
+        if self.state == "ankidote":
+            self.moveToState("ankidote")
+
+    def _ankidote_study_topic(self, topic: str) -> None:
+        from anki.ankidote import cards as ankidote_cards
+        from anki.ankidote import topics as ankidote_topics
+        from aqt.operations.deck import set_current_deck
+
+        # Migrate any legacy nested decks to the flat colon-free names first.
+        ankidote_topics.migrate_deck_names(self.col)
+        deck_name = ankidote_topics.deck_name(topic)
+        # id() creates the deck on demand; real cards replace these later.
+        deck_id = self.col.decks.id(deck_name)
+        if deck_id is None:
+            return
+        # Seed sample cards the first time so the reviewer shows cards instead
+        # of jumping straight to congrats on an empty deck.
+        if not self.col.find_cards(f'deck:"{deck_name}"'):
+            self._ankidote_seed_cards(deck_id, topic, ankidote_cards)
+        # Record the starting "interval < 3 days" count the first time a topic
+        # is studied, so the problem gate can later detect cards graduating
+        # past the 3-day mark relative to this baseline.
+        from aqt.mediasrv import _ankidote_state_read, _ankidote_state_write
+
+        state = _ankidote_state_read()
+        topic_mastery = state.setdefault("topicMastery", {})
+        if "immatureAtLastProblems" not in topic_mastery.get(topic, {}):
+            immature = len(self.col.find_cards(f'deck:"{deck_name}" prop:ivl<3'))
+            topic_mastery[topic] = {"immatureAtLastProblems": immature}
+            _ankidote_state_write(state)
+        # Remember what's being studied so the loop can, on return, decide
+        # whether this topic's deck earned a problem set (mastery delta).
+        self._ankidote_last_studied = topic
+        # Committing to a topic clears any "set aside" topics from this bout.
+        self._ankidote_skipped = set()
+        set_current_deck(parent=self, deck_id=deck_id).success(
+            lambda _out: self.moveToState("overview")
+        ).run_in_background()
+
+    def _ankidote_seed_cards(
+        self, deck_id: Any, topic: str, ankidote_cards: Any
+    ) -> None:
+        model = self.col.models.by_name("Basic")
+        if model is None:
+            return
+        for front, back in ankidote_cards.temp_cards(topic):
+            note = self.col.new_note(model)
+            note["Front"] = front
+            note["Back"] = back
+            self.col.add_note(note, deck_id)
 
     def _selectedDeck(self) -> DeckDict | None:
         did = self.col.decks.selected()
@@ -1173,6 +1309,7 @@ title="{}" {}>{}</button>""".format(
             ("t", self.onStats),
             ("Shift+t", self.onStats),
             ("y", self.on_sync_button_clicked),
+            ("k", self.onAnkidote),
         ]
         self.applyShortcuts(globalShortcuts)
         self.stateShortcuts: list[QShortcut] = []
@@ -1311,6 +1448,12 @@ title="{}" {}>{}</button>""".format(
         else:
             aqt.dialogs.open("NewDeckStats", self)
 
+    def onAnkidote(self) -> None:
+        self.moveToState("ankidote")
+
+    def onAnkidoteStats(self) -> None:
+        self.moveToState("ankidote", "ankidote/stats")
+
     def onPrefs(self) -> None:
         aqt.dialogs.open("Preferences", self)
 
@@ -1447,6 +1590,13 @@ title="{}" {}>{}</button>""".format(
         qconnect(m.actionNoteTypes.triggered, self.onNoteTypes)
         qconnect(m.action_check_for_updates.triggered, self.on_check_for_updates)
         qconnect(m.actionPreferences.triggered, self.onPrefs)
+
+        # Ankidote
+        ankidote_action = QAction("&Ankidote", self)
+        ankidote_action.setShortcut(QKeySequence("Ctrl+Shift+K"))
+        qconnect(ankidote_action.triggered, self.onAnkidote)
+        m.menuTools.addSeparator()
+        m.menuTools.addAction(ankidote_action)
 
         # View
         qconnect(
@@ -1625,6 +1775,11 @@ title="{}" {}>{}</button>""".format(
         gui_hooks.av_player_did_end_playing.append(self.on_av_player_did_end_playing)
         gui_hooks.operation_did_execute.append(self.on_operation_did_execute)
         gui_hooks.focus_did_change.append(self.on_focus_did_change)
+        # After a sync (including the one triggered right after login), swap the
+        # local-only Ankidote scratch for the account's synced data. A closing
+        # flag suppresses this during the shutdown auto-sync.
+        gui_hooks.sync_did_finish.append(self.ankidote_on_login)
+        gui_hooks.profile_will_close.append(self._ankidote_mark_closing)
 
         self._activeWindowOnPlay: QWidget | None = None
 

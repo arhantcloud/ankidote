@@ -1,0 +1,107 @@
+// Copyright: Ankitects Pty Ltd and contributors
+// License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package anki.ankidote;
+
+service AnkidoteService {
+  // Practice questions include the correct answer and explanation, for
+  // grading in the study loop.
+  rpc GetPracticeQuestions(GetPracticeQuestionsRequest)
+      returns (PracticeQuestions);
+  // Drives the adaptive diagnostic. Send all responses so far; the backend
+  // grades them, re-estimates ability, and returns either the next
+  // most-informative question (without its answer) or the final result.
+  rpc NextDiagnosticQuestion(DiagnosticState)
+      returns (NextDiagnosticQuestionResponse);
+}
+
+// Implicitly includes any of the above methods that are not listed in the
+// backend service.
+service BackendAnkidoteService {}
+
+enum Section {
+  SECTION_UNSPECIFIED = 0;
+  SECTION_QUANT = 1;
+  SECTION_VERBAL = 2;
+  SECTION_DATA_INSIGHTS = 3;
+}
+
+message PracticeQuestion {
+  int64 id = 1;
+  Section section = 2;
+  string topic = 3;
+  string subtopic = 4;
+  string stem = 5;
+  repeated string choices = 6;
+  // index into choices
+  uint32 correct_choice = 7;
+  string explanation = 8;
+  // 3PL IRT parameters
+  float discrimination = 9;
+  float difficulty = 10;
+  float guessing = 11;
+}
+
+message GetPracticeQuestionsRequest {
+  // empty matches all topics
+  string topic = 1;
+  // 0 means no limit
+  uint32 limit = 2;
+}
+
+message PracticeQuestions {
+  repeated PracticeQuestion questions = 1;
+}
+
+// A question stripped of its answer, for the diagnostic runner.
+message DiagnosticQuestion {
+  int64 id = 1;
+  Section section = 2;
+  string topic = 3;
+  string subtopic = 4;
+  string stem = 5;
+  repeated string choices = 6;
+}
+
+message DiagnosticAnswer {
+  int64 question_id = 1;
+  // index into choices
+  uint32 chosen_choice = 2;
+}
+
+message DiagnosticState {
+  repeated DiagnosticAnswer answers = 1;
+}
+
+message ScoreRange {
+  // GMAT total score scale (205-805)
+  uint32 low = 1;
+  uint32 high = 2;
+}
+
+message TopicScore {
+  string topic = 1;
+  float theta = 2;
+  float standard_error = 3;
+  ScoreRange score = 4;
+  uint32 questions_answered = 5;
+  uint32 questions_correct = 6;
+}
+
+message NextDiagnosticQuestionResponse {
+  bool finished = 1;
+  // unset when finished
+  DiagnosticQuestion question = 2;
+  uint32 answered = 3;
+  uint32 max_questions = 4;
+  // current ability estimate
+  float theta = 5;
+  float standard_error = 6;
+  ScoreRange score = 7;
+  // populated when finished
+  repeated TopicScore topic_scores = 8;
+}

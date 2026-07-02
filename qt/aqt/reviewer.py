@@ -691,6 +691,8 @@ class Reviewer:
             self.web.update()
         elif url == "statesMutated":
             self._states_mutated = True
+        elif url == "ankidote:loop":
+            self.mw.onAnkidoteLoop()
         else:
             print("unrecognized anki link:", url)
 
@@ -815,6 +817,7 @@ class Reviewer:
 <table id=innertable width=100%% cellspacing=0 cellpadding=0>
 <tr>
 <td align=start valign=top class=stat>
+<button title="Back to your Ankidote study loop" onclick="pycmd('ankidote:loop');">&larr; Loop</button>
 <button title="%(editkey)s" onclick="pycmd('edit');">%(edit)s</button></td>
 <td align=center valign=top id=middle>
 </td>

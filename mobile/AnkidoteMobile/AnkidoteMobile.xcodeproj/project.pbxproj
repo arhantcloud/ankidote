@@ -1,0 +1,680 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02FCCACE347B3B3EA0BDBEF4 /* fse_decompress.c in Sources */ = {isa = PBXBuildFile; fileRef = 832A09B9D2FE46AC77683043 /* fse_decompress.c */; };
+		041CB2CEA3A2605C891042CC /* AnkiWebSyncClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C2FDA0D45EC7B957A9B7A2 /* AnkiWebSyncClient.swift */; };
+		054B2CD5429B47F742476481 /* zstd_lazy.c in Sources */ = {isa = PBXBuildFile; fileRef = 439D4EA57085A953CE6F9B20 /* zstd_lazy.c */; };
+		0B90E1D5B13EDCAC79052650 /* zstd_fast.c in Sources */ = {isa = PBXBuildFile; fileRef = C70E140B8A7B4A243CFC0CC2 /* zstd_fast.c */; };
+		0BBF42406CA1607761C8113F /* AnkidoteModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D8DFA22C58443C8C38A106 /* AnkidoteModels.swift */; };
+		1063D0CACA2FCFC489050E3E /* sample_ankidote.json in Resources */ = {isa = PBXBuildFile; fileRef = B6CF9C06488B5C4FA92DC0C4 /* sample_ankidote.json */; };
+		11E8F669A2693F667EE75CA5 /* zstd_compress_superblock.c in Sources */ = {isa = PBXBuildFile; fileRef = D0B7322FD3E71D188A355052 /* zstd_compress_superblock.c */; };
+		1300AA31D8EA5E5F4A07FD38 /* zstd_compress_literals.c in Sources */ = {isa = PBXBuildFile; fileRef = 0FA694B11C70CD3386F5E618 /* zstd_compress_literals.c */; };
+		17CD34063CD13F23D5CD26F5 /* zstd_compress_sequences.c in Sources */ = {isa = PBXBuildFile; fileRef = 6791CA62D4A9F6886732F4F5 /* zstd_compress_sequences.c */; };
+		28497C5D72C568A91EF410F6 /* IRT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E822ED6ACF32A382D4685E3 /* IRT.swift */; };
+		2F87DBD91CED2DB1B8E1524F /* zstd_compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 27454721A7B2348E1BF2499B /* zstd_compress.c */; };
+		358274529F144B9FDBB2B6EF /* Zstd.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E71232E4241E33E672FD7B /* Zstd.swift */; };
+		3B3524974D342702D60D1111 /* LoopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58EE127B60E95CFF1171593E /* LoopView.swift */; };
+		3E2926F92BDA0A2130638509 /* zstd_ddict.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA24916D0DC18DF0E9CD465 /* zstd_ddict.c */; };
+		4E856556330698F1FDDDE724 /* LoopController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3748B8DB323ADD2FC858EA2A /* LoopController.swift */; };
+		553573B397C45C589B1F2E91 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0946B729B7E48560F52C9A0B /* Theme.swift */; };
+		57DB0E84694FDD0370C183FB /* hist.c in Sources */ = {isa = PBXBuildFile; fileRef = 35A93E3A74A8A6F9DAA927B1 /* hist.c */; };
+		5C1C875B3E4F3697521995D0 /* Problems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D76B5B9E67D648A3F498113 /* Problems.swift */; };
+		5D026081FA684DDEA15DD2DE /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE6E5BBA27E2DCA29CF60D2 /* LoginView.swift */; };
+		62C0761F69E6E62C1CA7DE29 /* ItemBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B660BFDF930E914B161E4E /* ItemBank.swift */; };
+		69B702C23B9E276620E7FF40 /* huf_compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 5C130E7079DB8CB08DBCC60A /* huf_compress.c */; };
+		6D373A558C3E82F0C94E02AA /* CatSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D073A371A6F169DF45527A64 /* CatSession.swift */; };
+		6F7023D32C6C2CA0112C6F98 /* zstd_common.c in Sources */ = {isa = PBXBuildFile; fileRef = A108A56625DE95FBC70D6EA2 /* zstd_common.c */; };
+		713E3B2B01D633A9DB4836DF /* error_private.c in Sources */ = {isa = PBXBuildFile; fileRef = 32C9ECF213A5FF29CCEDED5B /* error_private.c */; };
+		728121A66CBFF3F152865EA3 /* AnkidoteMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE218CC30929D418FFE2DC95 /* AnkidoteMobileApp.swift */; };
+		8114DD0BE6A7A38835D37292 /* xxhash.c in Sources */ = {isa = PBXBuildFile; fileRef = 12C702FE43C8FE7E0929D593 /* xxhash.c */; };
+		8570854384F33A1C14B84EBD /* item_bank.json in Resources */ = {isa = PBXBuildFile; fileRef = 25B7037DAF9FDF8FD9BFF4F7 /* item_bank.json */; };
+		8B2455136D2E4B47553EE66A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110B7817D65E25B358AC3F46 /* RootView.swift */; };
+		9471C9654E9EB1609AAC7BC5 /* zstd_decompress_block.c in Sources */ = {isa = PBXBuildFile; fileRef = A16AF0AA54C01FBD9F50FA98 /* zstd_decompress_block.c */; };
+		A0C3FDD330C4E10F0B79C4A9 /* entropy_common.c in Sources */ = {isa = PBXBuildFile; fileRef = F03A2916F607747306EDE80D /* entropy_common.c */; };
+		A55428049FF1E000166FFC1D /* zstd_opt.c in Sources */ = {isa = PBXBuildFile; fileRef = 309998516AF8E488B5370DA1 /* zstd_opt.c */; };
+		B02B6E8D87FA93F5E42CFC0F /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A74155658AE828BB51C83096 /* debug.c */; };
+		C39AC8672C10383956CF6F06 /* zstdmt_compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 6181399BB7982D967603F9D5 /* zstdmt_compress.c */; };
+		CB3A33FDE17507819C6BD85C /* zstd_decompress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3214163922C39999191DE7A6 /* zstd_decompress.c */; };
+		CEEB0DF097C5F9E8427DB74F /* pool.c in Sources */ = {isa = PBXBuildFile; fileRef = D6DEE1C2FA6EB903E1AA2EDC /* pool.c */; };
+		D22CA2C771FDA0F57D8BB777 /* zstd_ldm.c in Sources */ = {isa = PBXBuildFile; fileRef = E68E64F92D34A45E51619B69 /* zstd_ldm.c */; };
+		DE0D303C29419684D89E30D9 /* threading.c in Sources */ = {isa = PBXBuildFile; fileRef = F54CB18A4E3B2D3307DE01E6 /* threading.c */; };
+		E17BAC9B29C9EB57FE71F601 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175E8DF637C5016BE2C0022C /* CollectionStore.swift */; };
+		E1CC7DA281D2742D43532A35 /* zstd_double_fast.c in Sources */ = {isa = PBXBuildFile; fileRef = 1ACF08D9963F1BC03C6DD6D0 /* zstd_double_fast.c */; };
+		EAEE181BA39AA166AA3C6CB7 /* fse_compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 7AD03BC2A22AD29A41D67BB2 /* fse_compress.c */; };
+		EFA6F577F5EC0F4338074F24 /* huf_decompress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3E678F7EE414BEB35B70FB08 /* huf_decompress.c */; };
+		FA6EBE28B2707EF4BDAF86CD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FF28ACC956ABD23A5BF7F69 /* AppState.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		032F463815B586DB3E4AD30D /* zstd_deps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_deps.h; sourceTree = "<group>"; };
+		03AAF388527504F3F18CC31F /* zstd_ldm_geartab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_ldm_geartab.h; sourceTree = "<group>"; };
+		0946B729B7E48560F52C9A0B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		0D76B5B9E67D648A3F498113 /* Problems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Problems.swift; sourceTree = "<group>"; };
+		0EE6E5BBA27E2DCA29CF60D2 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		0FA694B11C70CD3386F5E618 /* zstd_compress_literals.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_compress_literals.c; sourceTree = "<group>"; };
+		100BB6D0253B1B83909F2F02 /* clevels.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = clevels.h; sourceTree = "<group>"; };
+		110B7817D65E25B358AC3F46 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		12C702FE43C8FE7E0929D593 /* xxhash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xxhash.c; sourceTree = "<group>"; };
+		13290368EC0CBCE4766243DA /* zstd_opt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_opt.h; sourceTree = "<group>"; };
+		15C62CF0AF15442E67ABFC25 /* huf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = huf.h; sourceTree = "<group>"; };
+		175E8DF637C5016BE2C0022C /* CollectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionStore.swift; sourceTree = "<group>"; };
+		195435A1B330BFD0BEA83289 /* zstd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd.h; sourceTree = "<group>"; };
+		1ACF08D9963F1BC03C6DD6D0 /* zstd_double_fast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_double_fast.c; sourceTree = "<group>"; };
+		1DC43FCC4C1FBBC744645BAF /* pool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pool.h; sourceTree = "<group>"; };
+		1E822ED6ACF32A382D4685E3 /* IRT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IRT.swift; sourceTree = "<group>"; };
+		248394BE877C9C6059A06B62 /* zstd_ldm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_ldm.h; sourceTree = "<group>"; };
+		25B7037DAF9FDF8FD9BFF4F7 /* item_bank.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = item_bank.json; sourceTree = "<group>"; };
+		27454721A7B2348E1BF2499B /* zstd_compress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_compress.c; sourceTree = "<group>"; };
+		2B12C0D42CF5DF79C41FCD7E /* mem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mem.h; sourceTree = "<group>"; };
+		2BFFA78564369CE5673DA44A /* zstd_decompress_block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_decompress_block.h; sourceTree = "<group>"; };
+		309998516AF8E488B5370DA1 /* zstd_opt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_opt.c; sourceTree = "<group>"; };
+		31FCFB4E5DCFA722AD7E5D07 /* zstd_double_fast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_double_fast.h; sourceTree = "<group>"; };
+		3214163922C39999191DE7A6 /* zstd_decompress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_decompress.c; sourceTree = "<group>"; };
+		32C9ECF213A5FF29CCEDED5B /* error_private.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = error_private.c; sourceTree = "<group>"; };
+		35A93E3A74A8A6F9DAA927B1 /* hist.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hist.c; sourceTree = "<group>"; };
+		3703C494669977D8222BF755 /* fse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fse.h; sourceTree = "<group>"; };
+		3748B8DB323ADD2FC858EA2A /* LoopController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopController.swift; sourceTree = "<group>"; };
+		3E678F7EE414BEB35B70FB08 /* huf_decompress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = huf_decompress.c; sourceTree = "<group>"; };
+		3F7033A564F0A99DDDBC3F5E /* zstd_compress_superblock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_compress_superblock.h; sourceTree = "<group>"; };
+		408528A07D338DAFEBB8128B /* zstd_compress_sequences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_compress_sequences.h; sourceTree = "<group>"; };
+		439D4EA57085A953CE6F9B20 /* zstd_lazy.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_lazy.c; sourceTree = "<group>"; };
+		4C4D8EB7472DB75C8616B139 /* zstd_fast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_fast.h; sourceTree = "<group>"; };
+		50D7C007BA8A5F95C72943C4 /* zstd_lazy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_lazy.h; sourceTree = "<group>"; };
+		52B6F62B864AC7D9EA12BD8F /* compiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = compiler.h; sourceTree = "<group>"; };
+		539B4F6BA9B365A351E2ED2D /* zstdmt_compress.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstdmt_compress.h; sourceTree = "<group>"; };
+		54FBD4A334E838DF8F74F7CD /* allocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = allocations.h; sourceTree = "<group>"; };
+		569290B864A6B50336D752CE /* zstd_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_internal.h; sourceTree = "<group>"; };
+		58EE127B60E95CFF1171593E /* LoopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopView.swift; sourceTree = "<group>"; };
+		5906D4049D08632CDC02297F /* zstd_compress_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_compress_internal.h; sourceTree = "<group>"; };
+		5AFFBED075A28F75DBB44F7A /* debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
+		5C130E7079DB8CB08DBCC60A /* huf_compress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = huf_compress.c; sourceTree = "<group>"; };
+		5FF28ACC956ABD23A5BF7F69 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		605F2118B7B9456B490650AB /* zstd_trace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_trace.h; sourceTree = "<group>"; };
+		6181399BB7982D967603F9D5 /* zstdmt_compress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstdmt_compress.c; sourceTree = "<group>"; };
+		63B660BFDF930E914B161E4E /* ItemBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemBank.swift; sourceTree = "<group>"; };
+		6791CA62D4A9F6886732F4F5 /* zstd_compress_sequences.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_compress_sequences.c; sourceTree = "<group>"; };
+		75C2FDA0D45EC7B957A9B7A2 /* AnkiWebSyncClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiWebSyncClient.swift; sourceTree = "<group>"; };
+		7AD03BC2A22AD29A41D67BB2 /* fse_compress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fse_compress.c; sourceTree = "<group>"; };
+		832A09B9D2FE46AC77683043 /* fse_decompress.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fse_decompress.c; sourceTree = "<group>"; };
+		8530F453631D03DA32567E34 /* hist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hist.h; sourceTree = "<group>"; };
+		8B68A1776E83E3EB6CC9A85F /* xxhash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xxhash.h; sourceTree = "<group>"; };
+		918AAD11060BF20BCA80C7AC /* bitstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitstream.h; sourceTree = "<group>"; };
+		9854153AD968B92F947748F1 /* zstd_cwksp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_cwksp.h; sourceTree = "<group>"; };
+		A108A56625DE95FBC70D6EA2 /* zstd_common.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_common.c; sourceTree = "<group>"; };
+		A16AF0AA54C01FBD9F50FA98 /* zstd_decompress_block.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_decompress_block.c; sourceTree = "<group>"; };
+		A74155658AE828BB51C83096 /* debug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = debug.c; sourceTree = "<group>"; };
+		A76DC63E757D620E5D0F699C /* threading.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = threading.h; sourceTree = "<group>"; };
+		A7E71232E4241E33E672FD7B /* Zstd.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zstd.swift; sourceTree = "<group>"; };
+		AE218CC30929D418FFE2DC95 /* AnkidoteMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkidoteMobileApp.swift; sourceTree = "<group>"; };
+		B15C300C12DA8C18E81167C8 /* zstd_compress_literals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_compress_literals.h; sourceTree = "<group>"; };
+		B205C3C78F4115D9E4F097CE /* zstd_decompress_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_decompress_internal.h; sourceTree = "<group>"; };
+		B3A6E7A0C2BE5488C1D595CE /* zstd_ddict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_ddict.h; sourceTree = "<group>"; };
+		B6CF9C06488B5C4FA92DC0C4 /* sample_ankidote.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sample_ankidote.json; sourceTree = "<group>"; };
+		B82F8EA25608EB3771C9BAD4 /* portability_macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portability_macros.h; sourceTree = "<group>"; };
+		C02C5FF2C144D36B6423DE0B /* AnkidoteMobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AnkidoteMobile-Bridging-Header.h"; sourceTree = "<group>"; };
+		C70E140B8A7B4A243CFC0CC2 /* zstd_fast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_fast.c; sourceTree = "<group>"; };
+		CC5F1BBAE1EF6736F9DE4568 /* error_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error_private.h; sourceTree = "<group>"; };
+		CFA24916D0DC18DF0E9CD465 /* zstd_ddict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_ddict.c; sourceTree = "<group>"; };
+		D073A371A6F169DF45527A64 /* CatSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatSession.swift; sourceTree = "<group>"; };
+		D0B7322FD3E71D188A355052 /* zstd_compress_superblock.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_compress_superblock.c; sourceTree = "<group>"; };
+		D1FBE497E4B63F8AEF4C3A06 /* zstd_errors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zstd_errors.h; sourceTree = "<group>"; };
+		D2C694EB79913544AE34597D /* bits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bits.h; sourceTree = "<group>"; };
+		D6DEE1C2FA6EB903E1AA2EDC /* pool.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pool.c; sourceTree = "<group>"; };
+		DA49EDC59AC0ABF0277AF422 /* AnkidoteMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AnkidoteMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E68E64F92D34A45E51619B69 /* zstd_ldm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zstd_ldm.c; sourceTree = "<group>"; };
+		F03A2916F607747306EDE80D /* entropy_common.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = entropy_common.c; sourceTree = "<group>"; };
+		F4D8DFA22C58443C8C38A106 /* AnkidoteModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkidoteModels.swift; sourceTree = "<group>"; };
+		F54CB18A4E3B2D3307DE01E6 /* threading.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = threading.c; sourceTree = "<group>"; };
+		FF275E8A15B73AE78812476F /* cpu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cpu.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		18B9B35FAC2A93E48313DD66 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				54FBD4A334E838DF8F74F7CD /* allocations.h */,
+				D2C694EB79913544AE34597D /* bits.h */,
+				918AAD11060BF20BCA80C7AC /* bitstream.h */,
+				52B6F62B864AC7D9EA12BD8F /* compiler.h */,
+				FF275E8A15B73AE78812476F /* cpu.h */,
+				A74155658AE828BB51C83096 /* debug.c */,
+				5AFFBED075A28F75DBB44F7A /* debug.h */,
+				F03A2916F607747306EDE80D /* entropy_common.c */,
+				32C9ECF213A5FF29CCEDED5B /* error_private.c */,
+				CC5F1BBAE1EF6736F9DE4568 /* error_private.h */,
+				832A09B9D2FE46AC77683043 /* fse_decompress.c */,
+				3703C494669977D8222BF755 /* fse.h */,
+				15C62CF0AF15442E67ABFC25 /* huf.h */,
+				2B12C0D42CF5DF79C41FCD7E /* mem.h */,
+				D6DEE1C2FA6EB903E1AA2EDC /* pool.c */,
+				1DC43FCC4C1FBBC744645BAF /* pool.h */,
+				B82F8EA25608EB3771C9BAD4 /* portability_macros.h */,
+				F54CB18A4E3B2D3307DE01E6 /* threading.c */,
+				A76DC63E757D620E5D0F699C /* threading.h */,
+				12C702FE43C8FE7E0929D593 /* xxhash.c */,
+				8B68A1776E83E3EB6CC9A85F /* xxhash.h */,
+				A108A56625DE95FBC70D6EA2 /* zstd_common.c */,
+				032F463815B586DB3E4AD30D /* zstd_deps.h */,
+				569290B864A6B50336D752CE /* zstd_internal.h */,
+				605F2118B7B9456B490650AB /* zstd_trace.h */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		3D1F8BFB1F42EA93AF0D4BFD /* AnkidoteMobile */ = {
+			isa = PBXGroup;
+			children = (
+				C9EC4A4408F876FBA34E4B4B /* App */,
+				B7E68D2CC692EEE8B641B88E /* Bridging */,
+				D968A9059E01427318184C5F /* Data */,
+				5ABC130209BDDC840BDE7489 /* Loop */,
+				5C3C9E5A2B0659835F197ADD /* Resources */,
+				955101D8919D48A185AEDE14 /* Sync */,
+				78475A9FE5D9E3A9327DF00A /* Vendor */,
+				E2340756DDD6EFDDF588762E /* Views */,
+			);
+			path = AnkidoteMobile;
+			sourceTree = "<group>";
+		};
+		48AE50B2F5B75E66110BDCEA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DA49EDC59AC0ABF0277AF422 /* AnkidoteMobile.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4CCA73D82706DEE58ECE9EE8 /* compress */ = {
+			isa = PBXGroup;
+			children = (
+				100BB6D0253B1B83909F2F02 /* clevels.h */,
+				7AD03BC2A22AD29A41D67BB2 /* fse_compress.c */,
+				35A93E3A74A8A6F9DAA927B1 /* hist.c */,
+				8530F453631D03DA32567E34 /* hist.h */,
+				5C130E7079DB8CB08DBCC60A /* huf_compress.c */,
+				5906D4049D08632CDC02297F /* zstd_compress_internal.h */,
+				0FA694B11C70CD3386F5E618 /* zstd_compress_literals.c */,
+				B15C300C12DA8C18E81167C8 /* zstd_compress_literals.h */,
+				6791CA62D4A9F6886732F4F5 /* zstd_compress_sequences.c */,
+				408528A07D338DAFEBB8128B /* zstd_compress_sequences.h */,
+				D0B7322FD3E71D188A355052 /* zstd_compress_superblock.c */,
+				3F7033A564F0A99DDDBC3F5E /* zstd_compress_superblock.h */,
+				27454721A7B2348E1BF2499B /* zstd_compress.c */,
+				9854153AD968B92F947748F1 /* zstd_cwksp.h */,
+				1ACF08D9963F1BC03C6DD6D0 /* zstd_double_fast.c */,
+				31FCFB4E5DCFA722AD7E5D07 /* zstd_double_fast.h */,
+				C70E140B8A7B4A243CFC0CC2 /* zstd_fast.c */,
+				4C4D8EB7472DB75C8616B139 /* zstd_fast.h */,
+				439D4EA57085A953CE6F9B20 /* zstd_lazy.c */,
+				50D7C007BA8A5F95C72943C4 /* zstd_lazy.h */,
+				03AAF388527504F3F18CC31F /* zstd_ldm_geartab.h */,
+				E68E64F92D34A45E51619B69 /* zstd_ldm.c */,
+				248394BE877C9C6059A06B62 /* zstd_ldm.h */,
+				309998516AF8E488B5370DA1 /* zstd_opt.c */,
+				13290368EC0CBCE4766243DA /* zstd_opt.h */,
+				6181399BB7982D967603F9D5 /* zstdmt_compress.c */,
+				539B4F6BA9B365A351E2ED2D /* zstdmt_compress.h */,
+			);
+			path = compress;
+			sourceTree = "<group>";
+		};
+		5ABC130209BDDC840BDE7489 /* Loop */ = {
+			isa = PBXGroup;
+			children = (
+				D073A371A6F169DF45527A64 /* CatSession.swift */,
+				1E822ED6ACF32A382D4685E3 /* IRT.swift */,
+				3748B8DB323ADD2FC858EA2A /* LoopController.swift */,
+				0D76B5B9E67D648A3F498113 /* Problems.swift */,
+			);
+			path = Loop;
+			sourceTree = "<group>";
+		};
+		5C3C9E5A2B0659835F197ADD /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				25B7037DAF9FDF8FD9BFF4F7 /* item_bank.json */,
+				B6CF9C06488B5C4FA92DC0C4 /* sample_ankidote.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5DA84968DEFD98E754ED3705 = {
+			isa = PBXGroup;
+			children = (
+				3D1F8BFB1F42EA93AF0D4BFD /* AnkidoteMobile */,
+				48AE50B2F5B75E66110BDCEA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		78475A9FE5D9E3A9327DF00A /* Vendor */ = {
+			isa = PBXGroup;
+			children = (
+				FD3919A2976E98BC35C28A5F /* zstd */,
+			);
+			path = Vendor;
+			sourceTree = "<group>";
+		};
+		955101D8919D48A185AEDE14 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				75C2FDA0D45EC7B957A9B7A2 /* AnkiWebSyncClient.swift */,
+				A7E71232E4241E33E672FD7B /* Zstd.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		B7E68D2CC692EEE8B641B88E /* Bridging */ = {
+			isa = PBXGroup;
+			children = (
+				C02C5FF2C144D36B6423DE0B /* AnkidoteMobile-Bridging-Header.h */,
+			);
+			path = Bridging;
+			sourceTree = "<group>";
+		};
+		C9EC4A4408F876FBA34E4B4B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AE218CC30929D418FFE2DC95 /* AnkidoteMobileApp.swift */,
+				5FF28ACC956ABD23A5BF7F69 /* AppState.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		D968A9059E01427318184C5F /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				F4D8DFA22C58443C8C38A106 /* AnkidoteModels.swift */,
+				175E8DF637C5016BE2C0022C /* CollectionStore.swift */,
+				63B660BFDF930E914B161E4E /* ItemBank.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		E2340756DDD6EFDDF588762E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0EE6E5BBA27E2DCA29CF60D2 /* LoginView.swift */,
+				58EE127B60E95CFF1171593E /* LoopView.swift */,
+				110B7817D65E25B358AC3F46 /* RootView.swift */,
+				0946B729B7E48560F52C9A0B /* Theme.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EE5A85AD60BEE9CD967C62BA /* decompress */ = {
+			isa = PBXGroup;
+			children = (
+				3E678F7EE414BEB35B70FB08 /* huf_decompress.c */,
+				CFA24916D0DC18DF0E9CD465 /* zstd_ddict.c */,
+				B3A6E7A0C2BE5488C1D595CE /* zstd_ddict.h */,
+				A16AF0AA54C01FBD9F50FA98 /* zstd_decompress_block.c */,
+				2BFFA78564369CE5673DA44A /* zstd_decompress_block.h */,
+				B205C3C78F4115D9E4F097CE /* zstd_decompress_internal.h */,
+				3214163922C39999191DE7A6 /* zstd_decompress.c */,
+			);
+			path = decompress;
+			sourceTree = "<group>";
+		};
+		FD3919A2976E98BC35C28A5F /* zstd */ = {
+			isa = PBXGroup;
+			children = (
+				D1FBE497E4B63F8AEF4C3A06 /* zstd_errors.h */,
+				195435A1B330BFD0BEA83289 /* zstd.h */,
+				18B9B35FAC2A93E48313DD66 /* common */,
+				4CCA73D82706DEE58ECE9EE8 /* compress */,
+				EE5A85AD60BEE9CD967C62BA /* decompress */,
+			);
+			path = zstd;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AFDA8C54E684F0E50973CA46 /* AnkidoteMobile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D02FCCB5645A400F40E76778 /* Build configuration list for PBXNativeTarget "AnkidoteMobile" */;
+			buildPhases = (
+				FCDD51A5AFC1300B538C7D18 /* Sources */,
+				C0281209D4CB331BEB191E9B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AnkidoteMobile;
+			packageProductDependencies = (
+			);
+			productName = AnkidoteMobile;
+			productReference = DA49EDC59AC0ABF0277AF422 /* AnkidoteMobile.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D8159B9EB5FFB2EFE8803EA9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					AFDA8C54E684F0E50973CA46 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 40BCDC1FF6763744AF7DB2C1 /* Build configuration list for PBXProject "AnkidoteMobile" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5DA84968DEFD98E754ED3705;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 48AE50B2F5B75E66110BDCEA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AFDA8C54E684F0E50973CA46 /* AnkidoteMobile */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C0281209D4CB331BEB191E9B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8570854384F33A1C14B84EBD /* item_bank.json in Resources */,
+				1063D0CACA2FCFC489050E3E /* sample_ankidote.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FCDD51A5AFC1300B538C7D18 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				041CB2CEA3A2605C891042CC /* AnkiWebSyncClient.swift in Sources */,
+				728121A66CBFF3F152865EA3 /* AnkidoteMobileApp.swift in Sources */,
+				0BBF42406CA1607761C8113F /* AnkidoteModels.swift in Sources */,
+				FA6EBE28B2707EF4BDAF86CD /* AppState.swift in Sources */,
+				6D373A558C3E82F0C94E02AA /* CatSession.swift in Sources */,
+				E17BAC9B29C9EB57FE71F601 /* CollectionStore.swift in Sources */,
+				28497C5D72C568A91EF410F6 /* IRT.swift in Sources */,
+				62C0761F69E6E62C1CA7DE29 /* ItemBank.swift in Sources */,
+				5D026081FA684DDEA15DD2DE /* LoginView.swift in Sources */,
+				4E856556330698F1FDDDE724 /* LoopController.swift in Sources */,
+				3B3524974D342702D60D1111 /* LoopView.swift in Sources */,
+				5C1C875B3E4F3697521995D0 /* Problems.swift in Sources */,
+				8B2455136D2E4B47553EE66A /* RootView.swift in Sources */,
+				553573B397C45C589B1F2E91 /* Theme.swift in Sources */,
+				358274529F144B9FDBB2B6EF /* Zstd.swift in Sources */,
+				B02B6E8D87FA93F5E42CFC0F /* debug.c in Sources */,
+				A0C3FDD330C4E10F0B79C4A9 /* entropy_common.c in Sources */,
+				713E3B2B01D633A9DB4836DF /* error_private.c in Sources */,
+				EAEE181BA39AA166AA3C6CB7 /* fse_compress.c in Sources */,
+				02FCCACE347B3B3EA0BDBEF4 /* fse_decompress.c in Sources */,
+				57DB0E84694FDD0370C183FB /* hist.c in Sources */,
+				69B702C23B9E276620E7FF40 /* huf_compress.c in Sources */,
+				EFA6F577F5EC0F4338074F24 /* huf_decompress.c in Sources */,
+				CEEB0DF097C5F9E8427DB74F /* pool.c in Sources */,
+				DE0D303C29419684D89E30D9 /* threading.c in Sources */,
+				8114DD0BE6A7A38835D37292 /* xxhash.c in Sources */,
+				6F7023D32C6C2CA0112C6F98 /* zstd_common.c in Sources */,
+				2F87DBD91CED2DB1B8E1524F /* zstd_compress.c in Sources */,
+				1300AA31D8EA5E5F4A07FD38 /* zstd_compress_literals.c in Sources */,
+				17CD34063CD13F23D5CD26F5 /* zstd_compress_sequences.c in Sources */,
+				11E8F669A2693F667EE75CA5 /* zstd_compress_superblock.c in Sources */,
+				3E2926F92BDA0A2130638509 /* zstd_ddict.c in Sources */,
+				CB3A33FDE17507819C6BD85C /* zstd_decompress.c in Sources */,
+				9471C9654E9EB1609AAC7BC5 /* zstd_decompress_block.c in Sources */,
+				E1CC7DA281D2742D43532A35 /* zstd_double_fast.c in Sources */,
+				0B90E1D5B13EDCAC79052650 /* zstd_fast.c in Sources */,
+				054B2CD5429B47F742476481 /* zstd_lazy.c in Sources */,
+				D22CA2C771FDA0F57D8BB777 /* zstd_ldm.c in Sources */,
+				A55428049FF1E000166FFC1D /* zstd_opt.c in Sources */,
+				C39AC8672C10383956CF6F06 /* zstdmt_compress.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1F7E2DAEFD8672990F94C82D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7E38405D6F0FA291CB19C55B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"ZSTD_DISABLE_ASM=1",
+				);
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/common",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/compress",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/decompress",
+				);
+				INFOPLIST_KEY_CFBundleDisplayName = Ankidote;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"-lsqlite3",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ankidote.mobile;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_OBJC_BRIDGING_HEADER = "AnkidoteMobile/Bridging/AnkidoteMobile-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B8E59F9BC732BD13AC3AF27A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C0EDBC143EDD3517C4424352 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"ZSTD_DISABLE_ASM=1",
+				);
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/common",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/compress",
+					"$(SRCROOT)/AnkidoteMobile/Vendor/zstd/decompress",
+				);
+				INFOPLIST_KEY_CFBundleDisplayName = Ankidote;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"-lsqlite3",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ankidote.mobile;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_OBJC_BRIDGING_HEADER = "AnkidoteMobile/Bridging/AnkidoteMobile-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		40BCDC1FF6763744AF7DB2C1 /* Build configuration list for PBXProject "AnkidoteMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F7E2DAEFD8672990F94C82D /* Debug */,
+				B8E59F9BC732BD13AC3AF27A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D02FCCB5645A400F40E76778 /* Build configuration list for PBXNativeTarget "AnkidoteMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0EDBC143EDD3517C4424352 /* Debug */,
+				7E38405D6F0FA291CB19C55B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D8159B9EB5FFB2EFE8803EA9 /* Project object */;
+}

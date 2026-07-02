@@ -352,25 +352,18 @@ class Toolbar:
                 id="decks",
             ),
             self.create_link(
-                "add",
-                tr.actions_add(),
-                self._addLinkHandler,
-                tip=tr.actions_shortcut_key(val="A"),
-                id="add",
-            ),
-            self.create_link(
-                "browse",
-                tr.qt_misc_browse(),
-                self._browseLinkHandler,
-                tip=tr.actions_shortcut_key(val="B"),
-                id="browse",
-            ),
-            self.create_link(
                 "stats",
                 tr.qt_misc_stats(),
                 self._statsLinkHandler,
                 tip=tr.actions_shortcut_key(val="T"),
                 id="stats",
+            ),
+            self.create_link(
+                "ankidote",
+                "Ankidote",
+                self._ankidoteLinkHandler,
+                tip=tr.actions_shortcut_key(val="K"),
+                id="ankidote",
             ),
         ]
 
@@ -448,7 +441,10 @@ class Toolbar:
         self.mw.onBrowse()
 
     def _statsLinkHandler(self) -> None:
-        self.mw.onStats()
+        self.mw.onAnkidoteStats()
+
+    def _ankidoteLinkHandler(self) -> None:
+        self.mw.moveToState("ankidote")
 
     def _syncLinkHandler(self) -> None:
         self.mw.on_sync_button_clicked()

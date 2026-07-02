@@ -46,8 +46,10 @@
     padding: 5px 12px;
     color: color(fg);
     display: inline-block;
+    transition: color var(--transition) ease-in-out;
     &:hover {
         text-decoration: underline;
+        color: color(fg-link);
     }
 }
 
@@ -99,10 +101,11 @@ body {
             border: 1px solid transparent;
 
             &:hover {
-                border: 1px solid var(--border-subtle);
+                border: 1px solid
+                    color-mix(in srgb, var(--fg-link) 55%, transparent);
             }
             &:active {
-                background: var(--canvas-inset);
+                background: color-mix(in srgb, var(--fg-link) 15%, transparent);
             }
             &:first-child {
                 padding-left: 18px;

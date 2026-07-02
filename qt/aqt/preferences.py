@@ -276,6 +276,7 @@ class Preferences(QDialog):
         assert self.prof is not None
         self.prof["syncKey"] = None
         self.mw.col.media.force_resync()
+        self.mw.ankidote_on_logout()
         self.update_login_status()
 
     def ankihub_sync_login(self) -> None:

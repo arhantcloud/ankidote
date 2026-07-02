@@ -1,0 +1,39 @@
+{
+  "loggedIn": true,
+  "diagnostic": {
+    "baseline": 505,
+    "low": 470,
+    "high": 545,
+    "answered": 66,
+    "takenAt": 1751000000000,
+    "topicScores": [
+      { "topic": "Arithmetic", "section": "quant", "theta": 0.5, "standardError": 0.4, "score": { "low": 525, "high": 585 }, "questionsAnswered": 6, "questionsCorrect": 5 },
+      { "topic": "Algebra", "section": "quant", "theta": 0.0, "standardError": 0.4, "score": { "low": 470, "high": 540 }, "questionsAnswered": 6, "questionsCorrect": 3 },
+      { "topic": "Number Properties", "section": "quant", "theta": -0.3, "standardError": 0.4, "score": { "low": 445, "high": 505 }, "questionsAnswered": 6, "questionsCorrect": 2 },
+      { "topic": "Word Problems", "section": "quant", "theta": 0.2, "standardError": 0.4, "score": { "low": 495, "high": 555 }, "questionsAnswered": 6, "questionsCorrect": 4 },
+      { "topic": "Rates & Work", "section": "quant", "theta": -0.1, "standardError": 0.4, "score": { "low": 465, "high": 525 }, "questionsAnswered": 6, "questionsCorrect": 3 },
+      { "topic": "Statistics", "section": "quant", "theta": 0.4, "standardError": 0.4, "score": { "low": 515, "high": 575 }, "questionsAnswered": 6, "questionsCorrect": 5 },
+      { "topic": "Combinatorics & Probability", "section": "quant", "theta": -0.5, "standardError": 0.4, "score": { "low": 425, "high": 485 }, "questionsAnswered": 6, "questionsCorrect": 2 },
+      { "topic": "Critical Reasoning", "section": "verbal", "theta": 0.1, "standardError": 0.4, "score": { "low": 485, "high": 545 }, "questionsAnswered": 6, "questionsCorrect": 4 },
+      { "topic": "Reading Comprehension", "section": "verbal", "theta": 0.3, "standardError": 0.4, "score": { "low": 505, "high": 565 }, "questionsAnswered": 6, "questionsCorrect": 4 },
+      { "topic": "Data Sufficiency", "section": "data_insights", "theta": -0.2, "standardError": 0.4, "score": { "low": 455, "high": 515 }, "questionsAnswered": 6, "questionsCorrect": 3 },
+      { "topic": "Graphics Interpretation", "section": "data_insights", "theta": -0.4, "standardError": 0.4, "score": { "low": 435, "high": 495 }, "questionsAnswered": 6, "questionsCorrect": 2 }
+    ]
+  },
+  "plan": {
+    "baseline": 505,
+    "desiredScore": 705,
+    "weeklyBudget": 10,
+    "testDate": "2026-09-01",
+    "totalHours": 120,
+    "weeksNeeded": 12,
+    "predictedLow": 675,
+    "predictedHigh": 735,
+    "commitments": []
+  },
+  "progress": {
+    "problemsAnswered": 0,
+    "problemsCorrect": 0,
+    "sessions": []
+  }
+}

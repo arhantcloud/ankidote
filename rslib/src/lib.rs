@@ -4,6 +4,7 @@
 #![deny(unused_must_use)]
 
 pub mod adding;
+pub mod ankidote;
 pub(crate) mod ankidroid;
 pub mod ankihub;
 pub mod backend;

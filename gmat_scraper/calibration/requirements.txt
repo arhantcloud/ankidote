@@ -1,0 +1,6 @@
+# Calibration pipeline dependencies.
+# NOTE: py-irt (which pulls in torch + pyro) requires Python 3.9-3.11.
+# Create this env with, e.g.:  python3.11 -m venv .venv
+py-irt>=0.7
+catsim>=0.21
+numpy>=1.24
