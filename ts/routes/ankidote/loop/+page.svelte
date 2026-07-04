@@ -3,13 +3,17 @@ Copyright: Ankitects Pty Ltd and contributors
 License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 -->
 <script lang="ts">
-    // The basic study loop (PRD §5, minimal): pick the lowest-scoring topic ->
-    // study its Anki cards (native reviewer) -> answer 2-3 practice problems ->
-    // re-estimate theta -> show the updated score -> next topic. Extra loop
-    // features (mistake review, subsumption, ranking, quizzes) come later.
+    // The study loop (PRD §5). One weak topic at a time: study its Anki cards
+    // (native reviewer), then hand off to the isolated practice-problem page
+    // (/ankidote/problems) to re-estimate the topic. This page owns topic
+    // selection, the cards step, cadence prompts (check-ins / organize) and the
+    // weekly-problem vial; the problem set itself lives on its own page.
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { bridgeCommand, bridgeCommandsAvailable } from "@tslib/bridgecommand";
+    import { sortDecks as sortDecksRpc } from "../engine";
+    import { Shell, Card, Badge, Button, PlanVial } from "../_lib";
+    import type { AnkidotePlanVial } from "../state";
 
     interface ScoreRange {
         low: number;
@@ -18,9 +22,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     interface Question {
         id: string;
-        section: number;
         topic: string;
-        subtopic: string;
         stem: string;
         choices: string[];
     }
@@ -30,8 +32,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             | "empty"
             | "login_required"
             | "cards"
+            | "organize"
             | "problems_offer"
             | "problems"
+            | "reveal"
             | "update"
             | "day_done";
         topic?: string;
@@ -49,22 +53,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         problemsUnlocked?: boolean;
         problemsDoneForDay?: boolean;
         problemsRemaining?: number;
-        result?: {
-            score: ScoreRange;
-            questionsAnswered: number;
-            questionsCorrect: number;
-        } | null;
         question?: Question | null;
+        commitments?: Record<string, boolean>;
+        planVial?: AnkidotePlanVial;
+        checkinDue?: boolean;
+        checkinBlocking?: boolean;
     }
 
     let state: LoopState = { phase: "empty" };
-    let question: Question | undefined;
-    let selectedChoice: number | null = null;
     let loading = false;
     let sorting = false;
     let errorMessage = "";
     let sortNote = "";
     let gateMessage = "";
+
+    // Problem-solving and the mandatory concept lesson each live on their own
+    // isolated page; those phases mean we belong there, not here.
+    const PROBLEM_PHASES = ["problems", "reveal", "update"];
 
     async function post(endpoint: string, body: unknown = {}): Promise<LoopState> {
         const resp = await fetch(`/_anki/${endpoint}`, {
@@ -80,8 +85,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     function apply(next: LoopState): void {
         state = next;
-        question = next.question ?? undefined;
-        selectedChoice = null;
+        if (next.phase === "organize") {
+            goto(
+                next.topic
+                    ? `/ankidote/organize?topic=${encodeURIComponent(next.topic)}`
+                    : "/ankidote/organize",
+            );
+        } else if (PROBLEM_PHASES.includes(next.phase)) {
+            goto("/ankidote/problems");
+        }
     }
 
     async function refresh(): Promise<void> {
@@ -109,11 +121,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    async function startProblems(topic?: string): Promise<void> {
+    function goProblems(topic?: string): void {
+        goto(
+            topic
+                ? `/ankidote/problems?topic=${encodeURIComponent(topic)}`
+                : "/ankidote/problems",
+        );
+    }
+
+    async function run(endpoint: string, body: unknown = {}): Promise<void> {
         loading = true;
         errorMessage = "";
         try {
-            apply(await post("ankidoteLoopStart", topic ? { topic } : {}));
+            apply(await post(endpoint, body));
         } catch (err) {
             errorMessage = `${err}`;
         } finally {
@@ -121,76 +141,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    async function skipProblems(topic?: string): Promise<void> {
-        loading = true;
-        errorMessage = "";
-        try {
-            apply(await post("ankidoteLoopSkip", topic ? { topic } : {}));
-        } catch (err) {
-            errorMessage = `${err}`;
-        } finally {
-            loading = false;
-        }
-    }
+    const skipProblems = (topic?: string) =>
+        run("ankidoteLoopSkip", topic ? { topic } : {});
+    const anotherTopic = (topic?: string) =>
+        run("ankidoteLoopAnother", topic ? { topic } : {});
 
     async function sortDecks(): Promise<void> {
         sorting = true;
         errorMessage = "";
         sortNote = "";
         try {
-            const res = (await post("ankidoteSortDecks")) as unknown as {
-                total: number;
-            };
-            sortNote = `Sorted ${res.total} cards into topic decks.`;
+            const total = await sortDecksRpc();
+            sortNote = `Sorted ${total} cards into topic decks.`;
             await refresh();
         } catch (err) {
             errorMessage = `${err}`;
         } finally {
             sorting = false;
-        }
-    }
-
-    async function submitAnswer(): Promise<void> {
-        if (selectedChoice === null || !question) {
-            return;
-        }
-        loading = true;
-        errorMessage = "";
-        try {
-            apply(
-                await post("ankidoteLoopAnswer", {
-                    problemId: question.id,
-                    chosenChoice: selectedChoice,
-                }),
-            );
-        } catch (err) {
-            errorMessage = `${err}`;
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function nextTopic(): Promise<void> {
-        loading = true;
-        errorMessage = "";
-        try {
-            apply(await post("ankidoteLoopNext"));
-        } catch (err) {
-            errorMessage = `${err}`;
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function anotherTopic(topic?: string): Promise<void> {
-        loading = true;
-        errorMessage = "";
-        try {
-            apply(await post("ankidoteLoopAnother", topic ? { topic } : {}));
-        } catch (err) {
-            errorMessage = `${err}`;
-        } finally {
-            loading = false;
         }
     }
 
@@ -200,7 +167,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             return;
         }
         gateMessage = "";
-        startProblems(state.topic);
+        goProblems(state.topic);
     }
 
     function problemsHint(s: LoopState): string {
@@ -213,24 +180,76 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         } need to reach a 3-day interval before problems unlock.`;
     }
 
+    // --- check-ins (stale-targeted mini-CAT) -------------------------------
+    interface CheckinState {
+        finished: boolean;
+        answered: number;
+        maxQuestions: number;
+        score?: ScoreRange;
+        question?: { id: string; stem: string; choices: string[] } | null;
+        before?: Record<string, ScoreRange>;
+        after?: Record<string, ScoreRange>;
+    }
+    let checkin: CheckinState | null = null;
+    let checkinChoice: number | null = null;
+
+    async function startCheckin(): Promise<void> {
+        loading = true;
+        errorMessage = "";
+        try {
+            checkin = (await post("ankidoteCheckinStart")) as unknown as CheckinState;
+            checkinChoice = null;
+        } catch (err) {
+            errorMessage = `${err}`;
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function answerCheckin(): Promise<void> {
+        if (!checkin?.question || checkinChoice === null) {
+            return;
+        }
+        loading = true;
+        try {
+            checkin = (await post("ankidoteCheckinAnswer", {
+                itemId: checkin.question.id,
+                chosenChoice: checkinChoice,
+            })) as unknown as CheckinState;
+            checkinChoice = null;
+        } catch (err) {
+            errorMessage = `${err}`;
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function finishCheckin(): Promise<void> {
+        checkin = null;
+        await refresh();
+    }
+
     $: topicRange = state.topicScore
         ? `${state.topicScore.low}–${state.topicScore.high}`
         : "not yet measured";
 </script>
 
-<main class="loop">
+<Shell align="top" max="46rem">
     <header class="top">
         <div>
-            <span class="eyebrow">Study loop</span>
+            <Badge variant="green" dot>Study loop</Badge>
             <h1>One weak topic at a time</h1>
         </div>
         <div class="top-actions">
-            <button class="ghost" on:click={sortDecks} disabled={sorting}>
+            <Button variant="ghost" size="sm" on:click={sortDecks} disabled={sorting}>
                 {sorting ? "Sorting…" : "Sort decks by topic"}
-            </button>
-            <button class="ghost" on:click={() => goto("/ankidote/stats")}>
+            </Button>
+            <Button variant="ghost" size="sm" on:click={() => goto("/ankidote/brew")}>
+                My Brew
+            </Button>
+            <Button variant="ghost" size="sm" on:click={() => goto("/ankidote/stats")}>
                 Dashboard
-            </button>
+            </Button>
         </div>
     </header>
 
@@ -238,46 +257,145 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         <p class="note">{sortNote}</p>
     {/if}
 
-    {#if state.phase === "login_required"}
-        <section class="panel empty">
-            <h2>Log in to start studying</h2>
-            <p>
-                Studying builds real Anki decks that sync to your account. Log in to
-                AnkiWeb (Sync) to unlock the study loop; your diagnostic and plan will
-                be restored from your account.
-            </p>
-            <button class="cta" on:click={() => goto("/ankidote/stats")}>
-                Back to dashboard &rarr;
-            </button>
-        </section>
-    {:else if state.phase === "empty"}
-        <section class="panel empty">
-            <h2>No diagnostic yet</h2>
-            <p>Take the diagnostic first so the loop knows where you're weakest.</p>
-            <button class="cta" on:click={() => goto("/ankidote/diagnostic")}>
-                Start the diagnostic &rarr;
-            </button>
-        </section>
-    {:else if state.phase === "day_done"}
-        <section class="panel empty">
-            <h2>You're done for today 🎉</h2>
-            <p>
-                Every topic deck is finished for the day. Come back tomorrow when new
-                cards are due, or review your dashboard.
-            </p>
-            {#if state.overall}
-                <p class="hero-sub">
-                    Current range: <b>{state.overall.low}&ndash;{state.overall.high}</b>
-                </p>
+    {#if state.planVial && state.phase !== "login_required" && state.phase !== "empty"}
+        <PlanVial vial={state.planVial} />
+    {/if}
+
+    <!-- Cadence prompts (gated). -->
+    {#if state.checkinDue && !checkin && state.phase !== "login_required"}
+        <Card>
+            <div class="banner" class:blocking={state.checkinBlocking}>
+                <div>
+                    <h3>
+                        {state.checkinBlocking ? "Check-in required" : "Check-in due"}
+                    </h3>
+                    <p>
+                        A quick ~10-question check-in re-anchors your score range on the
+                        topics that have gone stale.
+                        {#if state.checkinBlocking}
+                            Your estimate can't be left stale any longer.
+                        {/if}
+                    </p>
+                </div>
+                <div class="banner-actions">
+                    <Button on:click={startCheckin} disabled={loading}>
+                        Start check-in
+                    </Button>
+                </div>
+            </div>
+        </Card>
+    {/if}
+
+    {#if checkin}
+        <Card>
+            {#if !checkin.finished && checkin.question}
+                <div class="step">
+                    <span class="step-num">✓</span>
+                    <div class="step-body">
+                        <h3>
+                            Check-in · {checkin.answered + 1}/{checkin.maxQuestions}
+                        </h3>
+                        <p class="stem">{checkin.question.stem}</p>
+                        <div class="choices">
+                            {#each checkin.question.choices as choice, index}
+                                <button
+                                    class="choice"
+                                    class:selected={checkinChoice === index}
+                                    on:click={() => (checkinChoice = index)}
+                                >
+                                    <span class="letter">
+                                        {String.fromCharCode(65 + index)}
+                                    </span>
+                                    <span>{choice}</span>
+                                </button>
+                            {/each}
+                        </div>
+                        <div class="actions end">
+                            <Button
+                                on:click={answerCheckin}
+                                disabled={checkinChoice === null || loading}
+                            >
+                                {loading ? "…" : "Submit"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            {:else}
+                <div class="step-body">
+                    <h3>Check-in complete</h3>
+                    <p>Your score range has been re-anchored.</p>
+                    {#if checkin.before && checkin.after}
+                        <div class="beforeafter">
+                            {#each Object.keys(checkin.after) as topic}
+                                <div class="ba-row">
+                                    <span class="ba-topic">{topic}</span>
+                                    <span class="ba-before">
+                                        {checkin.before[topic]?.low ?? "–"}–{checkin
+                                            .before[topic]?.high ?? "–"}
+                                    </span>
+                                    <span class="ba-arrow">→</span>
+                                    <span class="ba-after">
+                                        {checkin.after[topic].low}–{checkin.after[topic]
+                                            .high}
+                                    </span>
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
+                    <div class="actions end">
+                        <Button on:click={finishCheckin}>Back to the loop →</Button>
+                    </div>
+                </div>
             {/if}
-            <button class="cta" on:click={() => goto("/ankidote/stats")}>
-                View my dashboard &rarr;
-            </button>
-        </section>
-    {:else}
-        <section class="panel topic-head">
+        </Card>
+    {:else if state.phase === "login_required"}
+        <Card>
+            <div class="empty">
+                <h2>Log in to start studying</h2>
+                <p>
+                    Studying builds real Anki decks that sync to your account. Log in to
+                    AnkiWeb (Sync) to unlock the study loop; your diagnostic and plan
+                    will be restored from your account.
+                </p>
+                <Button on:click={() => goto("/ankidote/stats")}>
+                    Back to dashboard &rarr;
+                </Button>
+            </div>
+        </Card>
+    {:else if state.phase === "empty"}
+        <Card>
+            <div class="empty">
+                <h2>No diagnostic yet</h2>
+                <p>Take the diagnostic first so the loop knows where you're weakest.</p>
+                <Button on:click={() => goto("/ankidote/diagnostic")}>
+                    Start the diagnostic &rarr;
+                </Button>
+            </div>
+        </Card>
+    {:else if state.phase === "day_done"}
+        <Card>
+            <div class="empty">
+                <h2>You're done for today 🎉</h2>
+                <p>
+                    Every topic deck is finished for the day. Come back tomorrow when
+                    new cards are due, or review your dashboard.
+                </p>
+                {#if state.overall}
+                    <p class="hero-sub">
+                        Current range: <b>
+                            {state.overall.low}&ndash;{state.overall.high}
+                        </b>
+                    </p>
+                {/if}
+                <Button on:click={() => goto("/ankidote/stats")}>
+                    View my dashboard &rarr;
+                </Button>
+            </div>
+        </Card>
+    {:else if !state.checkinBlocking}
+        <Card corners>
             <div class="topic-line">
-                <span class="tag section">{state.sectionLabel}</span>
+                <Badge variant="green">{state.sectionLabel}</Badge>
                 <h2>{state.topic}</h2>
                 <span class="weight">{state.weightPct}% of your total score</span>
             </div>
@@ -303,208 +421,175 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 Picked because it sits furthest below your target once weighted by how
                 much it's worth on the GMAT.
             </p>
-        </section>
+        </Card>
 
         {#if state.phase === "cards"}
-            <section class="panel step">
-                <span class="step-num">1</span>
-                <div class="step-body">
-                    <h3>Study flashcards</h3>
-                    <p>
-                        Cards come from your Anki deck
-                        <code>{state.deck}</code>
-                        . Study them with the normal reviewer (spaced repetition). When the
-                        deck is done for the day, you'll head back here.
-                    </p>
-                    <div class="actions">
-                        <button class="cta" on:click={studyCards}>
-                            Study cards in this deck
-                        </button>
-                        <button
-                            class="cta alt"
-                            on:click={() => anotherTopic(state.topic)}
-                            disabled={loading}
-                        >
-                            Study a different topic
-                        </button>
-                    </div>
-                    <div class="actions">
-                        <button
-                            class="cta"
-                            class:locked={!state.problemsUnlocked}
-                            title={state.problemsUnlocked
-                                ? "Test what you've learned with practice problems"
-                                : problemsHint(state)}
-                            on:click={onProblemsClick}
-                            disabled={loading}
-                        >
-                            Do problems for this topic
-                        </button>
-                    </div>
-                    {#if gateMessage && !state.problemsUnlocked}
-                        <p class="note gate-note">{gateMessage}</p>
-                    {/if}
-                </div>
-            </section>
-        {:else if state.phase === "problems_offer"}
-            <section class="panel step">
-                <span class="step-num">2</span>
-                <div class="step-body">
-                    <h3>Deck done for today — test what stuck?</h3>
-                    <p>
-                        <b>{state.masteryGained}</b>
-                        more card{state.masteryGained === 1 ? "" : "s"} in
-                        <b>{state.topic}</b>
-                        {state.masteryGained === 1 ? "has" : "have"} moved past a 3-day interval
-                        since your last check ({state.mastered}/{state.total} mastered). That's
-                        enough change to re-measure with a few practice problems.
-                    </p>
-                    <div class="actions">
-                        <button class="cta" on:click={() => startProblems(state.topic)}>
-                            Do problems for this topic
-                        </button>
-                        <button
-                            class="cta alt"
-                            on:click={() => skipProblems(state.topic)}
-                        >
-                            Not yet → next topic
-                        </button>
-                    </div>
-                </div>
-            </section>
-        {:else if state.phase === "problems" && question}
-            <section class="panel step">
-                <span class="step-num">2</span>
-                <div class="step-body">
-                    <h3>Practice problems</h3>
-                    <p class="stem">{question.stem}</p>
-                    <div class="choices">
-                        {#each question.choices as choice, index}
-                            <button
-                                class="choice"
-                                class:selected={selectedChoice === index}
-                                on:click={() => (selectedChoice = index)}
+            <Card>
+                <div class="step">
+                    <span class="step-num">1</span>
+                    <div class="step-body">
+                        <h3>Study flashcards</h3>
+                        <p>
+                            Cards come from your Anki deck
+                            <code>{state.deck}</code>
+                            . Study them with the normal reviewer (spaced repetition). When
+                            the deck is done for the day, you'll head back here.
+                        </p>
+                        <div class="actions">
+                            <Button on:click={studyCards}>
+                                Study cards in this deck
+                            </Button>
+                            <Button
+                                variant="outline"
+                                on:click={() => anotherTopic(state.topic)}
+                                disabled={loading}
                             >
-                                <span class="letter">
-                                    {String.fromCharCode(65 + index)}
-                                </span>
-                                <span>{choice}</span>
-                            </button>
-                        {/each}
-                    </div>
-                    <div class="actions end">
-                        <button
-                            class="cta"
-                            on:click={submitAnswer}
-                            disabled={selectedChoice === null || loading}
-                        >
-                            {loading ? "Scoring…" : "Submit answer"}
-                        </button>
-                    </div>
-                </div>
-            </section>
-        {:else if state.phase === "update" && state.result}
-            <section class="panel step done">
-                <span class="step-num">✓</span>
-                <div class="step-body">
-                    <h3>Score updated</h3>
-                    <p>
-                        {state.result.questionsCorrect}/{state.result.questionsAnswered} correct.
-                        New range for
-                        <b>{state.topic}</b>
-                        :
-                        <b>{state.result.score.low}–{state.result.score.high}</b>
-                        .
-                    </p>
-                    <div class="actions end">
-                        <button class="cta" on:click={nextTopic}>Next topic →</button>
+                                Study a different topic
+                            </Button>
+                        </div>
+                        <div class="actions">
+                            {#if state.problemsUnlocked}
+                                <Button on:click={onProblemsClick} disabled={loading}>
+                                    Do problems for this topic
+                                </Button>
+                            {:else}
+                                <button
+                                    class="locked"
+                                    title={problemsHint(state)}
+                                    on:click={onProblemsClick}
+                                    disabled={loading}
+                                >
+                                    Do problems for this topic
+                                </button>
+                            {/if}
+                        </div>
+                        {#if gateMessage && !state.problemsUnlocked}
+                            <p class="note gate-note">{gateMessage}</p>
+                        {/if}
                     </div>
                 </div>
-            </section>
+            </Card>
+        {:else if state.phase === "problems_offer"}
+            <Card>
+                <div class="step">
+                    <span class="step-num">2</span>
+                    <div class="step-body">
+                        <h3>Deck done for today — test what stuck?</h3>
+                        <p>
+                            <b>{state.masteryGained}</b>
+                            more card{state.masteryGained === 1 ? "" : "s"} in
+                            <b>{state.topic}</b>
+                            {state.masteryGained === 1 ? "has" : "have"} moved past a 3-day
+                            interval since your last check ({state.mastered}/{state.total}
+                            mastered). That's enough change to re-measure with a few practice
+                            problems.
+                        </p>
+                        <div class="actions">
+                            <Button on:click={() => goProblems(state.topic)}>
+                                Do problems for this topic
+                            </Button>
+                            <Button
+                                variant="outline"
+                                on:click={() => skipProblems(state.topic)}
+                            >
+                                Not yet → next topic
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Card>
         {/if}
     {/if}
 
     {#if errorMessage}
         <p class="error">{errorMessage}</p>
     {/if}
-</main>
+</Shell>
 
 <style lang="scss">
-    .loop {
-        --accent: #45a05a;
-        --accent-2: #2e7d46;
-        min-height: 100vh;
-        max-width: 46rem;
-        margin: 0 auto;
-        padding: 2.5rem 1.5rem 4rem;
-        color: var(--fg);
-    }
+    @use "../_lib/theme" as ad;
 
     .top {
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
-        margin-bottom: 1.4rem;
+        margin-bottom: 1.6rem;
         gap: 1rem;
     }
 
     .top-actions {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.4rem;
         align-items: center;
         flex-wrap: wrap;
     }
 
     .note {
-        font-size: 0.85rem;
-        color: var(--accent);
-        margin: -0.6rem 0 1rem;
-    }
-
-    .eyebrow {
-        display: inline-block;
-        font-size: 0.76rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--accent);
-        margin-bottom: 0.3rem;
+        font-family: ad.$font-mono;
+        font-size: 0.8rem;
+        color: ad.$green;
+        margin: -0.4rem 0 1rem;
     }
 
     h1 {
+        font-family: ad.$font-heading;
         font-size: clamp(1.5rem, 4vw, 2rem);
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: -0.02em;
-        margin: 0;
+        margin: 0.5rem 0 0;
     }
 
     h2 {
+        font-family: ad.$font-heading;
         font-size: 1.3rem;
-        font-weight: 800;
+        font-weight: 600;
         margin: 0;
     }
 
     h3 {
+        font-family: ad.$font-heading;
         font-size: 1.05rem;
-        font-weight: 700;
+        font-weight: 600;
         margin: 0 0 0.4rem;
     }
 
-    .panel {
-        border: 1px solid var(--border);
-        border-radius: 1.1rem;
-        background: var(--canvas-elevated, var(--canvas));
-        padding: 1.3rem 1.4rem;
+    :global(.ad-content > .ad-card) {
         margin-bottom: 1.1rem;
+    }
+
+    .banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        p {
+            color: ad.$muted;
+            margin: 0.2rem 0 0;
+            font-size: 0.9rem;
+        }
+
+        &.blocking h3 {
+            color: ad.$danger;
+        }
+    }
+
+    .banner-actions {
+        flex: none;
     }
 
     .empty {
         text-align: center;
-        padding: 3rem 1.5rem;
+        padding: 1.5rem 0.5rem;
 
         p {
-            opacity: 0.75;
-            margin: 0.5rem 0 1.4rem;
+            color: ad.$muted;
+            line-height: 1.6;
+            margin: 0.6rem 0 1.4rem;
+        }
+
+        b {
+            color: ad.$green;
         }
     }
 
@@ -513,55 +598,50 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         align-items: center;
         gap: 0.7rem;
         flex-wrap: wrap;
-        margin-bottom: 0.9rem;
+        margin-bottom: 1rem;
     }
 
     .weight {
-        font-size: 0.82rem;
-        opacity: 0.65;
-    }
-
-    .tag {
-        font-size: 0.74rem;
-        font-weight: 700;
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-        border: 1px solid var(--accent);
-        color: var(--accent);
+        font-family: ad.$font-mono;
+        font-size: 0.78rem;
+        color: ad.$muted;
     }
 
     .ranges {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 0.7rem;
-        margin-bottom: 0.7rem;
+        margin-bottom: 0.9rem;
     }
 
     .range {
-        border: 1px solid var(--border);
-        border-radius: 0.7rem;
-        padding: 0.5rem 0.7rem;
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-input;
+        padding: 0.6rem 0.8rem;
         display: flex;
         flex-direction: column;
-        gap: 0.15rem;
+        gap: 0.25rem;
+        background: rgba(255, 255, 255, 0.02);
     }
 
     .range-label {
-        font-size: 0.7rem;
+        font-family: ad.$font-mono;
+        font-size: 0.66rem;
         text-transform: uppercase;
-        letter-spacing: 0.07em;
-        opacity: 0.6;
-        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: ad.$muted;
     }
 
     .range-value {
-        font-weight: 800;
+        font-family: ad.$font-mono;
+        font-weight: 500;
         font-size: 1.05rem;
+        color: ad.$fg;
     }
 
     .why {
-        font-size: 0.82rem;
-        opacity: 0.7;
+        font-size: 0.84rem;
+        color: ad.$muted;
         margin: 0;
     }
 
@@ -573,15 +653,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .step-num {
         flex: none;
-        width: 2rem;
-        height: 2rem;
+        width: 2.2rem;
+        height: 2.2rem;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
+        font-family: ad.$font-heading;
+        font-weight: 700;
         color: #fff;
-        background: linear-gradient(120deg, var(--accent), var(--accent-2));
+        background: linear-gradient(to right, ad.$serum, ad.$green);
+        box-shadow: 0 0 18px -4px rgba(34, 197, 94, 0.6);
     }
 
     .step-body {
@@ -589,30 +671,37 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         min-width: 0;
 
         p {
-            opacity: 0.85;
-            line-height: 1.5;
+            color: ad.$muted;
+            line-height: 1.6;
             margin: 0 0 0.9rem;
+
+            b {
+                color: ad.$fg;
+                font-weight: 600;
+            }
         }
     }
 
     code {
+        font-family: ad.$font-mono;
         font-size: 0.85em;
-        padding: 0.1rem 0.35rem;
+        padding: 0.1rem 0.4rem;
         border-radius: 0.35rem;
-        background: rgba(69, 160, 90, 0.12);
-        color: var(--accent);
+        background: ad.$green-wash;
+        color: ad.$green;
     }
 
     .stem {
         font-size: 1.05rem;
         line-height: 1.6;
         white-space: pre-line;
+        color: ad.$fg !important;
     }
 
     .choices {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.55rem;
         margin-bottom: 1rem;
     }
 
@@ -622,29 +711,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         gap: 0.8rem;
         width: 100%;
         text-align: start;
+        font-family: ad.$font-body;
         font-size: 0.96rem;
-        padding: 0.7rem 0.85rem;
-        border: 1px solid var(--border);
-        border-radius: 0.7rem;
-        background: transparent;
-        color: var(--fg);
+        padding: 0.75rem 0.9rem;
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-input;
+        background: rgba(0, 0, 0, 0.25);
+        color: ad.$fg;
         cursor: pointer;
         transition:
-            border-color 0.12s ease,
-            background 0.12s ease;
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease;
 
         &:hover {
-            border-color: var(--accent);
+            border-color: ad.$border-hi;
         }
 
         &.selected {
-            border-color: var(--accent);
-            background: rgba(69, 160, 90, 0.1);
+            border-color: ad.$green;
+            background: ad.$green-wash;
+            box-shadow: 0 0 20px -8px rgba(34, 197, 94, 0.5);
 
             .letter {
-                background: var(--accent);
+                background: linear-gradient(to right, ad.$serum, ad.$green);
                 color: #fff;
-                border-color: var(--accent);
+                border-color: transparent;
             }
         }
     }
@@ -654,12 +746,46 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 1.6rem;
-        height: 1.6rem;
+        width: 1.7rem;
+        height: 1.7rem;
         border-radius: 50%;
-        border: 1px solid var(--border);
+        border: 1px solid ad.$border;
+        font-family: ad.$font-mono;
         font-size: 0.78rem;
-        font-weight: 700;
+        font-weight: 500;
+    }
+
+    .beforeafter {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin: 0.6rem 0 1rem;
+        font-family: ad.$font-mono;
+        font-size: 0.85rem;
+
+        .ba-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .ba-topic {
+            min-width: 7rem;
+            color: ad.$fg;
+        }
+
+        .ba-before {
+            color: ad.$muted;
+        }
+
+        .ba-after {
+            color: ad.$green;
+            font-weight: 600;
+        }
+
+        .ba-arrow {
+            color: ad.$muted;
+        }
     }
 
     .actions {
@@ -676,67 +802,30 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin-top: 0.7rem;
     }
 
-    .cta {
-        border: none;
-        border-radius: 999px;
-        padding: 0.7rem 1.5rem;
+    .locked {
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-pill;
+        min-height: 44px;
+        padding: 0.7rem 1.7rem;
+        font-family: ad.$font-body;
         font-size: 0.95rem;
-        font-weight: 700;
-        color: #fff;
-        cursor: pointer;
-        background: linear-gradient(120deg, var(--accent), var(--accent-2));
-        box-shadow: 0 5px 16px rgba(69, 160, 90, 0.28);
-        transition: transform 0.15s ease;
+        font-weight: 600;
+        color: ad.$muted;
+        background: rgba(255, 255, 255, 0.04);
+        cursor: help;
 
-        &:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-        &:disabled {
-            background: #8a8f98;
-            color: #fff;
-            box-shadow: none;
-            cursor: default;
-        }
-        &.locked {
-            background: #8a8f98;
-            color: #fff;
-            box-shadow: none;
-            cursor: help;
-
-            &:hover {
-                transform: none;
-            }
-        }
-        &.alt {
-            color: var(--fg);
-            background: transparent;
-            border: 1px solid var(--border);
-            box-shadow: none;
+        &:hover {
+            border-color: ad.$border;
         }
     }
 
     .gate-note {
-        color: #8a8f98;
-        margin-top: 0.5rem;
-    }
-
-    .ghost {
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.55rem 1.1rem;
-        font-size: 0.88rem;
-        font-weight: 600;
-        color: var(--fg);
-        background: transparent;
-        cursor: pointer;
-
-        &:hover {
-            border-color: var(--accent);
-        }
+        color: ad.$muted;
+        margin-top: 0.6rem;
     }
 
     .error {
-        color: #e05b5b;
+        color: ad.$danger;
         font-size: 0.9rem;
     }
 

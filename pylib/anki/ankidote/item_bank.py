@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 _BANK_PATH = Path(__file__).with_name("item_bank.json")
@@ -44,6 +44,10 @@ class Item:
     a: float
     b: float
     c: float
+    # Canonical best->worst ordering of the choices (indices into ``choices``),
+    # used to grade answer-choice ranking with partial credit. ``choice_order[0]``
+    # is always ``correct``. Empty when the item ships no authored/mock ranking.
+    choice_order: list[int] = field(default_factory=list)
 
     @property
     def section_id(self) -> int:
@@ -77,6 +81,7 @@ def _load_items() -> list[Item]:
                 a=float(rec.get("a", 1.0)),
                 b=float(rec.get("b", 0.0)),
                 c=float(rec.get("c", 1.0 / max(len(rec["choices"]), 1))),
+                choice_order=[int(i) for i in rec.get("choice_order", [])],
             )
         )
     return items

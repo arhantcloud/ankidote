@@ -15,8 +15,39 @@ service AnkidoteService {
   // Drives the adaptive diagnostic. Send all responses so far; the backend
   // grades them, re-estimates ability, and returns either the next
   // most-informative question (without its answer) or the final result.
+  //
+  // Deprecated single-pool CAT. Prefer RunDiagnostic, which runs one adaptive
+  // session per topic (the multi-topic runner the apps actually use).
   rpc NextDiagnosticQuestion(DiagnosticState)
       returns (NextDiagnosticQuestionResponse);
+  // Multi-topic adaptive diagnostic. Stateless: the caller sends every
+  // response so far plus the confidence warm-start; the backend runs one
+  // adaptive session per topic (greedy max-uncertainty scheduling) and
+  // returns the next question or, when finished, the per-topic + overall
+  // score ranges. This is the shared engine both desktop and mobile drive.
+  rpc RunDiagnostic(DiagnosticProgress)
+      returns (NextDiagnosticQuestionResponse);
+  // Stateless per-topic practice-problem phase of the study loop. The caller
+  // sends the topic, its warm-start theta, and the answers so far; the backend
+  // serves 2-3 IRT-selected problems and re-estimates the topic's theta/SE.
+  rpc RunLoopProblems(LoopProblemProgress) returns (LoopProblemStep);
+  // Fold a finished topic problem result into the persisted ankidote blob
+  // (updates topicScores + overall range + practice tallies) and return the
+  // updated state.
+  rpc ApplyLoopResult(TopicScore) returns (AnkidoteStateJson);
+  // Study-loop phase machine: reads the persisted plan/diagnostic and the
+  // topic decks in the collection to decide what to study next.
+  rpc GetLoopState(GetLoopStateRequest) returns (LoopState);
+  // Read the persisted ankidote state blob (collection config), carried
+  // across devices by native sync.
+  rpc GetAnkidoteState(GetAnkidoteStateRequest) returns (AnkidoteStateJson);
+  // Merge a partial ankidote state blob into the persisted one.
+  rpc SetAnkidoteState(SetAnkidoteStateRequest) returns (AnkidoteStateJson);
+  // Real dashboard inputs: per-topic deck mastery, graded reviews, and the
+  // persisted practice tallies (no mocks).
+  rpc GetAnkidoteStats(GetAnkidoteStatsRequest) returns (AnkidoteStats);
+  // Distribute the collection's existing cards into per-topic Ankidote decks.
+  rpc SortDecks(SortDecksRequest) returns (SortDecksResponse);
 }
 
 // Implicitly includes any of the above methods that are not listed in the
@@ -104,4 +135,112 @@ message NextDiagnosticQuestionResponse {
   ScoreRange score = 7;
   // populated when finished
   repeated TopicScore topic_scores = 8;
+}
+
+// Cumulative state for the multi-topic diagnostic runner.
+message DiagnosticProgress {
+  repeated DiagnosticAnswer answers = 1;
+  // Confidence slider (1-5) keyed by topic or, more coarsely, section slug;
+  // seeds each per-topic theta warm start.
+  map<string, int32> confidence = 2;
+  // Global item cap (0 = engine default).
+  uint32 max_questions = 3;
+}
+
+// A single response in the loop problem phase (problems are addressed by their
+// index within the topic's deterministic pool).
+message ProblemAnswer {
+  uint32 index = 1;
+  uint32 chosen_choice = 2;
+}
+
+message LoopProblemProgress {
+  string topic = 1;
+  string section = 2;
+  // Warm start (the topic's diagnostic theta).
+  double theta0 = 3;
+  repeated ProblemAnswer answers = 4;
+}
+
+// A practice problem stripped of its answer, for presentation.
+message LoopProblem {
+  uint32 index = 1;
+  string topic = 2;
+  string subtopic = 3;
+  string stem = 4;
+  repeated string choices = 5;
+}
+
+message LoopProblemStep {
+  bool finished = 1;
+  // unset when finished
+  LoopProblem problem = 2;
+  uint32 answered = 3;
+  uint32 correct = 4;
+  double theta = 5;
+  double standard_error = 6;
+  ScoreRange score = 7;
+}
+
+message AnkidoteStateJson {
+  // The full ankidote config blob, JSON-encoded.
+  string json = 1;
+}
+
+message GetAnkidoteStateRequest {}
+
+message SetAnkidoteStateRequest {
+  // A partial ankidote blob (JSON) to merge into the persisted one.
+  string partial_json = 1;
+}
+
+message GetLoopStateRequest {}
+
+// The study-loop phase machine output. Flexible extra fields are carried in a
+// JSON payload so the UI keeps the exact shape it renders today.
+message LoopState {
+  // empty | cards | problems_offer | problems | update | day_done
+  string phase = 1;
+  string topic = 2;
+  string section = 3;
+  string section_label = 4;
+  string deck = 5;
+  double weight = 6;
+  // JSON blob with the remaining topic payload fields (counts, scores, etc.).
+  string payload_json = 7;
+}
+
+message GetAnkidoteStatsRequest {}
+
+message TopicMastery {
+  string topic = 1;
+  string section = 2;
+  uint32 mastered = 3;
+  uint32 total = 4;
+  uint32 pct = 5;
+}
+
+message PracticeHistoryEntry {
+  uint32 days_ago = 1;
+  string topic = 2;
+  uint32 count = 3;
+  uint32 accuracy = 4;
+}
+
+message AnkidoteStats {
+  uint32 problems_answered = 1;
+  uint32 problems_correct = 2;
+  repeated PracticeHistoryEntry sessions = 3;
+  uint32 graded_reviews = 4;
+  repeated TopicMastery topic_mastery = 5;
+  // -1 when there are no topic cards yet.
+  int32 mastery_pct = 6;
+  uint32 mastered_cards = 7;
+  uint32 total_cards = 8;
+}
+
+message SortDecksRequest {}
+
+message SortDecksResponse {
+  uint32 total = 1;
 }

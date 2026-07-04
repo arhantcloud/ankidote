@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """End-to-end calibration pipeline: questions.json -> py-irt -> catsim bank.
 
-Runs the three stages in order:
-  1. make_dataset.py  -> responses.jsonlines + items.json  (synthetic bootstrap)
-  2. py-irt train     -> pyirt_out/best_parameters.json
-  3. to_catsim.py     -> item_bank.npy / .json / .csv       (+ optional CAT sim)
+Runs the stages in order:
+  1. make_dataset.py    -> responses.jsonlines + items.json  (ranking-based sim)
+  2. py-irt train       -> pyirt_out/best_parameters.json
+  3. to_catsim.py       -> item_bank.npy / .json / .csv       (+ optional CAT sim)
+  4. build_app_bank.py  -> pylib/anki/ankidote/item_bank.json (live app bank)
 
 Usage:
   python run_pipeline.py                         # 2PL, 400 examinees, 1000 epochs
@@ -49,6 +50,8 @@ def main() -> int:
     parser.add_argument("--guessing", default="auto",
                         help="Pseudo-guessing for the catsim bank (default auto=1/k).")
     parser.add_argument("--seed", type=int, default=13)
+    parser.add_argument("--no-app-bank", action="store_true",
+                        help="Skip writing the live app item bank (stage 4).")
     args = parser.parse_args()
 
     outdir = os.path.abspath(args.outdir)
@@ -73,6 +76,11 @@ def main() -> int:
          "--outdir", outdir,
          "--guessing", args.guessing,
          "--simulate"])
+
+    # Stage 4: reshape into the live app's item bank (unless suppressed).
+    if not args.no_app_bank:
+        run([sys.executable, os.path.join(HERE, "build_app_bank.py"),
+             "--in", os.path.join(outdir, "item_bank.json")])
 
     print(f"\nDone. catsim item bank written to {outdir}/item_bank.npy")
     return 0

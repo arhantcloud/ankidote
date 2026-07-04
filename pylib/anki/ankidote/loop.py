@@ -21,22 +21,79 @@ from anki.ankidote import problems, scores, topics
 from anki.ankidote.engine import CatSession, Stopper
 from anki.ankidote.item_bank import Item
 
+# Problems served per topic phase, keyed by the chosen problems/hr pace. A
+# faster committed pace means a longer estimate-adjustment set; a relaxed pace
+# keeps it short. (min_items keeps the estimate meaningful.)
+_PROBLEMS_PER_PACE = {"relaxed": 2, "focused": 3, "intense": 4}
+
+# Partial credit awarded when the correct answer lands at each rank in the
+# student's top-3 (answer-choice ranking). Missing entirely scores 0.
+_RANK_CREDIT = [1.0, 0.6, 0.3]
+
+# How many misses of the same problem before Note-to-self is offered.
+_NOTE_MISS_THRESHOLD = 2
+
+
+def problems_for_pace(pace: str) -> int:
+    return _PROBLEMS_PER_PACE.get(pace, _PROBLEMS_PER_PACE["focused"])
+
+
+def grade_ranking(item: Item, ranking: list[int]) -> float:
+    """Graded score ``g ∈ [0, 1]`` for a top-3 answer-choice ranking.
+
+    Credit is driven by where the student placed the correct answer. When the
+    item carries a canonical ``choice_order`` (future authored items), the
+    overlap of the student's ordering with it refines the score; otherwise we
+    fall back to the position of the correct choice alone.
+    """
+    if not ranking:
+        return 0.0
+    correct = item.correct
+    if correct in ranking:
+        pos = ranking.index(correct)
+        base = _RANK_CREDIT[pos] if pos < len(_RANK_CREDIT) else 0.0
+    else:
+        base = 0.0
+
+    order = getattr(item, "choice_order", None)
+    if isinstance(order, list) and order:
+        # Reward agreement with the canonical ordering of the ranked choices.
+        agree = sum(
+            1
+            for i, choice in enumerate(ranking)
+            if i < len(order) and choice == order[i]
+        )
+        base = max(base, agree / max(len(_RANK_CREDIT), 1))
+    return round(min(1.0, base), 3)
+
 
 class LoopSession:
     """Live state of one topic's problem phase."""
 
-    def __init__(self, topic: str, section: str, theta0: float = 0.0) -> None:
+    def __init__(
+        self,
+        topic: str,
+        section: str,
+        theta0: float = 0.0,
+        *,
+        pace: str = "focused",
+    ) -> None:
         self.topic = topic
         self.section = section
+        max_items = problems_for_pace(pace)
         self.session = CatSession(
             topic=topic,
             section=section,
             pool=problems.get_pool(topic),
             theta=theta0,
-            # 2-3 problems per the PRD's estimate-adjustment cadence.
-            stopper=Stopper(target_se=0.5, min_items=2, max_items=3),
+            stopper=Stopper(
+                target_se=0.5, min_items=min(2, max_items), max_items=max_items
+            ),
         )
         self._pending: str | None = None
+        # The last graded item, so the endpoint can build reveal/mistake data.
+        self.last_item: Item | None = None
+        self.last_verdict: dict | None = None
 
     def next_problem(self) -> Item | None:
         if self.session.stopped:
@@ -45,12 +102,67 @@ class LoopSession:
         self._pending = item.id if item else None
         return item
 
-    def answer(self, problem_id: str, chosen_choice: int) -> None:
+    def answer(
+        self,
+        problem_id: str,
+        chosen_choice: int | None = None,
+        *,
+        ranking: list[int] | None = None,
+        revealed: bool = False,
+    ) -> dict:
+        """Grade a response, fold it into the estimate, and return a verdict.
+
+        Supports single-choice (``chosen_choice``) and top-3 answer-choice
+        ranking (``ranking``). Returns a dict with the graded score, whether it
+        counts as correct, and the reveal payload (correct choice + rationale).
+
+        Give-up rule (PRD §4): when ``revealed`` is set (the learner revealed the
+        answer or marked "don't know"), the response is scored as not known and
+        cannot lift the ability estimate, whatever was submitted.
+        """
         item = problems.get(problem_id)
         if item is None:
             raise ValueError(f"unknown problem: {problem_id}")
-        self.session.record_response(item, item.is_correct(chosen_choice))
+
+        if ranking:
+            score = grade_ranking(item, ranking)
+            correct = bool(ranking and ranking[0] == item.correct)
+        else:
+            if chosen_choice is None:
+                raise ValueError("either chosen_choice or ranking is required")
+            correct = item.is_correct(chosen_choice)
+            score = 1.0 if correct else 0.0
+
+        if revealed:
+            correct = False
+            score = 0.0
+
+        self.session.record_response(item, score, revealed=revealed)
         self._pending = None
+        self.last_item = item
+        # Canonical best->worst ordering for the reveal's side-by-side. Authored
+        # items may ship a full ``choice_order``; single-answer items only know
+        # the correct choice, so the ideal ranking is just [correct].
+        order = getattr(item, "choice_order", None)
+        correct_ranking = (
+            list(order) if isinstance(order, list) and order else [item.correct]
+        )
+        verdict = {
+            "problemId": item.id,
+            "topic": item.topic,
+            "correct": correct,
+            "score": score,
+            "revealed": revealed,
+            "chosenChoice": chosen_choice,
+            "ranking": list(ranking) if ranking else None,
+            "correctChoice": item.correct,
+            "correctRanking": correct_ranking,
+            "choices": list(item.choices),
+            "stem": item.stem,
+            "explanation": item.explanation,
+        }
+        self.last_verdict = verdict
+        return verdict
 
     @property
     def finished(self) -> bool:
@@ -149,3 +261,98 @@ def apply_result(state: dict, result: dict) -> dict:
     # Keep the log bounded (it lives in the synced config blob).
     del sessions[:-30]
     return state
+
+
+# --- Mistake review + note-to-self state (PRD §5.2 / §5.3) ----------------
+#
+# These live in the persisted ``ankidote`` blob so they sync across devices.
+# The loop endpoints call them; keeping them here keeps the problem-phase data
+# model in one place.
+
+_MAX_MISTAKES = 100
+
+
+def record_mistake(state: dict, record: dict) -> dict:
+    """Append a mistake to the (bounded, synced) error log."""
+    mistakes = state.get("mistakes")
+    if not isinstance(mistakes, list):
+        mistakes = []
+        state["mistakes"] = mistakes
+    mistakes.append(record)
+    del mistakes[:-_MAX_MISTAKES]
+    return state
+
+
+def build_mistake_record(verdict: dict, why: str, grade: dict, attempts: int) -> dict:
+    """A single entry for ``state["mistakes"]`` (the reviewable error log)."""
+    return {
+        "ts": int(time.time() * 1000),
+        "problemId": verdict.get("problemId"),
+        "topic": verdict.get("topic"),
+        "stem": verdict.get("stem"),
+        "chosenChoice": verdict.get("chosenChoice"),
+        "ranking": verdict.get("ranking"),
+        "correctChoice": verdict.get("correctChoice"),
+        "why": why,
+        "score": grade.get("score"),
+        "aiGraded": bool(grade.get("aiGraded")),
+        "attempts": attempts,
+    }
+
+
+def bump_miss(state: dict, key: str) -> int:
+    """Increment and return the miss count for a problem (note-to-self gate)."""
+    counts = state.get("missCounts")
+    if not isinstance(counts, dict):
+        counts = {}
+        state["missCounts"] = counts
+    counts[key] = int(counts.get(key, 0)) + 1
+    return counts[key]
+
+
+def miss_count(state: dict, key: str) -> int:
+    counts = state.get("missCounts")
+    if not isinstance(counts, dict):
+        return 0
+    return int(counts.get(key, 0))
+
+
+# A failed attempt at a GMAT item plus the relearning it triggers costs roughly
+# this many minutes; correctly explaining the error now avoids several of those
+# future cycles (retrieval-based error correction).
+_RELEARN_MINUTES = 3.0
+
+
+def time_saved_seconds(state: dict, key: str, difficulty: float = 0.0) -> int:
+    """Estimated future practice time saved by resolving this mistake now.
+
+    Credits a correct explanation with the relearning cycles it prevents: a
+    baseline of a few avoided reps, more when the error has been sticky (missed
+    repeatedly) and when the item is harder (higher IRT ``b``).
+    """
+    misses = max(1, miss_count(state, key))
+    difficulty_bonus = max(0, min(4, round(difficulty + 1)))
+    reps_avoided = 3 + (misses - 1) + difficulty_bonus
+    return int(reps_avoided * _RELEARN_MINUTES * 60)
+
+
+def note_prompt_due(state: dict, key: str) -> bool:
+    """Whether a card/problem has been missed enough to prompt a note-to-self."""
+    return miss_count(state, key) >= _NOTE_MISS_THRESHOLD
+
+
+def save_note(state: dict, key: str, text: str) -> dict:
+    notes = state.get("notesToSelf")
+    if not isinstance(notes, dict):
+        notes = {}
+        state["notesToSelf"] = notes
+    notes[key] = {"text": text, "ts": int(time.time() * 1000)}
+    return state
+
+
+def get_note(state: dict, key: str) -> dict | None:
+    notes = state.get("notesToSelf")
+    if not isinstance(notes, dict):
+        return None
+    note = notes.get(key)
+    return note if isinstance(note, dict) else None

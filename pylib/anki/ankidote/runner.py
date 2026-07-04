@@ -40,21 +40,32 @@ class DiagnosticRunner:
         *,
         confidence: dict[str, int] | None = None,
         max_questions: int | None = None,
+        topics: list[str] | None = None,
+        theta0: dict[str, float] | None = None,
     ) -> None:
         self.bank = bank or get_bank()
         confidence = confidence or {}
+        theta0 = theta0 or {}
+
+        # A check-in restricts the runner to a subset of (stale) topics; the
+        # onboarding diagnostic covers them all.
+        selected = topics if topics else self.bank.topics()
 
         self.sessions: dict[str, CatSession] = {}
-        for topic in self.bank.topics():
+        for topic in selected:
             pool = self.bank.items_for_topic(topic)
-            section = pool[0].section if pool else ""
-            # Confidence may be keyed by topic or, more coarsely, by section.
+            if not pool:
+                continue
+            section = pool[0].section
+            # A prior estimate (check-in warm start) wins over the confidence
+            # slider; otherwise fall back to the confidence-seeded theta.
             conf = confidence.get(topic, confidence.get(section))
+            start = theta0.get(topic)
             self.sessions[topic] = CatSession(
                 topic=topic,
                 section=section,
                 pool=pool,
-                theta=_seed_theta(conf),
+                theta=start if start is not None else _seed_theta(conf),
                 stopper=Stopper(target_se=0.45, min_items=1, max_items=3),
             )
 
@@ -107,14 +118,22 @@ class DiagnosticRunner:
         self._pending[item.id] = session.topic
         return item
 
-    def answer(self, item_id: str, chosen_choice: int) -> None:
-        """Grade a response and fold it into the right topic session."""
+    def answer(
+        self, item_id: str, chosen_choice: int, *, revealed: bool = False
+    ) -> None:
+        """Grade a response and fold it into the right topic session.
+
+        ``revealed`` propagates the give-up signal (card revealed / "don't
+        know") so the engine scores it as not known (see ``CatSession``).
+        """
         item = self.bank.get(item_id)
         if item is None:
             raise ValueError(f"unknown item: {item_id}")
         topic = self._pending.pop(item_id, item.topic)
         session = self.sessions[topic]
-        session.record_response(item, item.is_correct(chosen_choice))
+        session.record_response(
+            item, item.is_correct(chosen_choice), revealed=revealed
+        )
 
     # -- reporting ----------------------------------------------------------
 

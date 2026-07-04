@@ -693,6 +693,8 @@ class Reviewer:
             self._states_mutated = True
         elif url == "ankidote:loop":
             self.mw.onAnkidoteLoop()
+        elif url == "ankidote:problems":
+            self.mw.onAnkidoteProblems()
         else:
             print("unrecognized anki link:", url)
 
@@ -811,13 +813,39 @@ class Reviewer:
     # Bottom bar
     ##########################################################################
 
+    def _ankidote_loop_button(self) -> str:
+        """The bottom-bar Ankidote button: a bright 'Problems unlocked' CTA once
+        this topic's problem set is unlocked, otherwise the plain '← Loop' link."""
+        plain = (
+            '<button title="Back to your Ankidote study loop" '
+            "onclick=\"pycmd('ankidote:loop');\">&larr; Loop</button>"
+        )
+        try:
+            from aqt.mediasrv import ankidote_problems_ready, ankidote_reviewer_topic
+
+            topic = ankidote_reviewer_topic()
+            if topic and ankidote_problems_ready(topic):
+                return (
+                    '<button class="ankidote-unlocked" '
+                    'title="Practice problems are unlocked for this topic" '
+                    'style="background:linear-gradient(to right,#5eead4,#22c55e);'
+                    "color:#04140b;font-weight:700;border:none;border-radius:6px;"
+                    "padding:3px 12px;box-shadow:0 0 12px rgba(34,197,94,0.6);"
+                    'cursor:pointer;" '
+                    "onclick=\"pycmd('ankidote:problems');\">"
+                    "&#129514; Problems unlocked &rarr;</button>"
+                )
+        except Exception as exc:
+            print("ankidote: loop button fell back:", exc)
+        return plain
+
     def _bottomHTML(self) -> str:
         return """
 <center id=outer>
 <table id=innertable width=100%% cellspacing=0 cellpadding=0>
 <tr>
 <td align=start valign=top class=stat>
-<button title="Back to your Ankidote study loop" onclick="pycmd('ankidote:loop');">&larr; Loop</button>
+%(ankidoteLoop)s
 <button title="%(editkey)s" onclick="pycmd('edit');">%(edit)s</button></td>
 <td align=center valign=top id=middle>
 </td>
@@ -841,6 +869,7 @@ timerStopped = false;
             morekey=tr.actions_shortcut_key(val="M"),
             downArrow=downArrow(),
             time=self.card.time_taken() // 1000,
+            ankidoteLoop=self._ankidote_loop_button(),
         )
 
     def _showAnswerButton(self) -> None:

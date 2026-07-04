@@ -182,8 +182,8 @@ class AnkiQt(QMainWindow):
     # "done for the day -> maybe problems" decision on return, see mediasrv).
     _ankidote_last_studied: Any = None
     _ankidote_skipped: set[str] = set()
-    # True once the profile is closing, so the shutdown auto-sync doesn't try to
-    # reload the Ankidote page (see ankidote_on_login).
+    # True once the profile is closing, so close-time Firebase pushes can tell
+    # they are running during shutdown (see _ankidote_on_profile_close).
     _ankidote_profile_closing: bool = False
 
     def __init__(
@@ -574,6 +574,7 @@ class AnkiQt(QMainWindow):
 
         refresh_reviewer_on_day_rollover_change()
         gui_hooks.profile_did_open()
+        self._ankidote_restore_session()
         self.maybe_auto_sync_on_open_close(_onsuccess)
 
     def unloadProfile(self, onsuccess: Callable) -> None:
@@ -817,6 +818,21 @@ class AnkiQt(QMainWindow):
     def onAnkidoteLoop(self) -> None:
         self.moveToState("ankidote", "ankidote/loop")
 
+    def onAnkidoteProblems(self) -> None:
+        """Jump straight to the isolated problem page for the current topic
+        (from the reviewer's 'Problems unlocked' button)."""
+        from urllib.parse import quote
+
+        from aqt.mediasrv import ankidote_reviewer_topic
+
+        topic = ankidote_reviewer_topic()
+        route = (
+            f"ankidote/problems?topic={quote(topic)}"
+            if topic
+            else "ankidote/problems"
+        )
+        self.moveToState("ankidote", route)
+
     def _ankidote_reset_session(self) -> None:
         """Drop in-memory diagnostic/loop state so the flow starts clean."""
         self._ankidote_diag = None
@@ -827,41 +843,25 @@ class AnkiQt(QMainWindow):
     def _ankidote_mark_closing(self) -> None:
         self._ankidote_profile_closing = True
 
-    def ankidote_on_logout(self) -> None:
-        """Restart the Ankidote flow at the diagnostic on AnkiWeb logout.
+    def _ankidote_on_profile_close(self) -> None:
+        """Push local Ankidote progress + scheduling to Firestore on close."""
+        try:
+            from aqt.ankidote import sync as ankidote_sync
 
-        The synced state stays untouched in the collection (and in the cloud);
-        we only clear the local-only scratch and in-memory session so a
-        logged-out user sees onboarding from zero. Logging back in restores the
-        account's synced data via ``ankidote_on_login``.
-        """
-        from aqt.mediasrv import _ANKIDOTE_SCRATCH_KEY
+            ankidote_sync.push_all_on_close(self)
+        except Exception as exc:
+            print("ankidote: close-time sync skipped:", exc)
 
-        if self.pm.profile is not None:
-            self.pm.profile.pop(_ANKIDOTE_SCRATCH_KEY, None)
-        self._ankidote_reset_session()
-        if self.state == "ankidote":
-            self.moveToState("ankidote")
+    def _ankidote_restore_session(self) -> None:
+        """Resume a saved Firebase session on profile open and pull cloud data."""
+        try:
+            from aqt.ankidote import sync as ankidote_sync
 
-    def ankidote_on_login(self) -> None:
-        """Discard the logged-out scratch so synced account data takes over.
-
-        Runs after every sync (including the one right after login). Skipped
-        while the profile is closing, since the close-time auto-sync also fires
-        ``sync_did_finish`` and reloading a page during shutdown is pointless.
-        """
-        from aqt.mediasrv import _ANKIDOTE_SCRATCH_KEY
-
-        if getattr(self, "_ankidote_profile_closing", False):
-            return
-        if self.pm.profile is not None:
-            self.pm.profile.pop(_ANKIDOTE_SCRATCH_KEY, None)
-        self._ankidote_reset_session()
-        if self.state == "ankidote":
-            self.moveToState("ankidote")
+            ankidote_sync.restore_session(self)
+        except Exception as exc:
+            print("ankidote: session restore skipped:", exc)
 
     def _ankidote_study_topic(self, topic: str) -> None:
-        from anki.ankidote import cards as ankidote_cards
         from anki.ankidote import topics as ankidote_topics
         from aqt.operations.deck import set_current_deck
 
@@ -872,10 +872,10 @@ class AnkiQt(QMainWindow):
         deck_id = self.col.decks.id(deck_name)
         if deck_id is None:
             return
-        # Seed sample cards the first time so the reviewer shows cards instead
-        # of jumping straight to congrats on an empty deck.
+        # Seed the repo-shipped deck the first time so the reviewer shows cards
+        # instead of jumping straight to congrats on an empty deck.
         if not self.col.find_cards(f'deck:"{deck_name}"'):
-            self._ankidote_seed_cards(deck_id, topic, ankidote_cards)
+            self._ankidote_seed_cards(deck_id, topic)
         # Record the starting "interval < 3 days" count the first time a topic
         # is studied, so the problem gate can later detect cards graduating
         # past the 3-day mark relative to this baseline.
@@ -896,16 +896,19 @@ class AnkiQt(QMainWindow):
             lambda _out: self.moveToState("overview")
         ).run_in_background()
 
-    def _ankidote_seed_cards(
-        self, deck_id: Any, topic: str, ankidote_cards: Any
-    ) -> None:
+    def _ankidote_seed_cards(self, deck_id: Any, topic: str) -> None:
+        from anki.ankidote import decks as ankidote_decks
+
         model = self.col.models.by_name("Basic")
         if model is None:
             return
-        for front, back in ankidote_cards.temp_cards(topic):
+        for spec in ankidote_decks.load_deck(topic):
             note = self.col.new_note(model)
-            note["Front"] = front
-            note["Back"] = back
+            note["Front"] = spec.front
+            note["Back"] = spec.back
+            # Stable, install-independent guid so per-user scheduling can be
+            # synced by guid:ord without shipping the deck content to Firebase.
+            note.guid = spec.guid
             self.col.add_note(note, deck_id)
 
     def _selectedDeck(self) -> DeckDict | None:
@@ -1242,15 +1245,12 @@ title="{}" {}>{}</button>""".format(
         sync_collection(self, on_done=on_collection_sync_finished)
 
     def maybe_auto_sync_on_open_close(self, after_sync: Callable[[bool], None]) -> None:
-        "If disabled, after_sync() is called immediately."
-        if self.can_auto_sync():
-            self._sync_collection_and_media(lambda: after_sync(True))
-        else:
-            after_sync(False)
+        "AnkiWeb sync removed; Ankidote uses Firebase, so never auto-sync here."
+        after_sync(False)
 
     def can_auto_sync(self) -> bool:
-        "True if syncing on startup/shutdown enabled."
-        return self._can_sync_unattended() and self.pm.auto_syncing_enabled()
+        "AnkiWeb sync removed."
+        return False
 
     def _can_sync_unattended(self) -> bool:
         return (
@@ -1308,7 +1308,6 @@ title="{}" {}>{}</button>""".format(
             ("b", self.onBrowse),
             ("t", self.onStats),
             ("Shift+t", self.onStats),
-            ("y", self.on_sync_button_clicked),
             ("k", self.onAnkidote),
         ]
         self.applyShortcuts(globalShortcuts)
@@ -1775,11 +1774,10 @@ title="{}" {}>{}</button>""".format(
         gui_hooks.av_player_did_end_playing.append(self.on_av_player_did_end_playing)
         gui_hooks.operation_did_execute.append(self.on_operation_did_execute)
         gui_hooks.focus_did_change.append(self.on_focus_did_change)
-        # After a sync (including the one triggered right after login), swap the
-        # local-only Ankidote scratch for the account's synced data. A closing
-        # flag suppresses this during the shutdown auto-sync.
-        gui_hooks.sync_did_finish.append(self.ankidote_on_login)
+        # Ankidote data is synced via Firebase (see aqt.ankidote). Push local
+        # progress/scheduling to Firestore when the profile closes.
         gui_hooks.profile_will_close.append(self._ankidote_mark_closing)
+        gui_hooks.profile_will_close.append(self._ankidote_on_profile_close)
 
         self._activeWindowOnPlay: QWidget | None = None
 

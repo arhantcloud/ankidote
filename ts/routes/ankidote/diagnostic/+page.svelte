@@ -7,43 +7,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // (AntiPlan/diagnostic-cat-plan.md §4.4). The auth header is injected for
     // this trusted webview by AuthInterceptor, and application/binary is
     // required by the API's CSRF guard even for a JSON body.
+    import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { saveAnkidoteState } from "../state";
-
-    interface ScoreRange {
-        low: number;
-        high: number;
-    }
-
-    interface DiagnosticQuestion {
-        id: string;
-        section: number;
-        topic: string;
-        subtopic: string;
-        stem: string;
-        choices: string[];
-    }
-
-    interface TopicScore {
-        topic: string;
-        section: string;
-        theta: number;
-        standardError: number;
-        score: ScoreRange;
-        questionsAnswered: number;
-        questionsCorrect: number;
-    }
-
-    interface DiagnosticState {
-        finished: boolean;
-        answered: number;
-        maxQuestions: number;
-        theta: number;
-        standardError: number;
-        score: ScoreRange;
-        question: DiagnosticQuestion | null;
-        topicScores: TopicScore[];
-    }
+    import { loadAnkidoteAuth, loadAnkidoteState, saveAnkidoteState } from "../state";
+    import type { AnkidoteScoreSnapshot } from "../state";
+    import { runDiagnostic, type NextDiagnosticQuestionResponse } from "../engine";
+    import type { DiagnosticQuestion } from "@generated/anki/ankidote_pb";
+    import { Shell, Card, Badge, Button } from "../_lib";
 
     type Phase = "intro" | "question" | "done";
 
@@ -51,23 +21,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let loading = false;
     let errorMessage = "";
 
+    // The diagnostic runner is stateless: we keep the cumulative answers and
+    // the backend re-derives the adaptive session deterministically.
+    let answers: { questionId: bigint; chosenChoice: number }[] = [];
     let question: DiagnosticQuestion | undefined;
     let selectedChoice: number | null = null;
-    let latest: DiagnosticState | undefined;
+    let latest: NextDiagnosticQuestionResponse | undefined;
 
-    async function post(endpoint: string, body: unknown): Promise<DiagnosticState> {
-        const resp = await fetch(`/_anki/${endpoint}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/binary" },
-            body: JSON.stringify(body ?? {}),
-        });
-        if (!resp.ok) {
-            throw new Error(await resp.text());
+    // The diagnostic is only available to signed-in users; signed-out visitors
+    // are sent back to the login screen to start the flow from the top.
+    onMount(async () => {
+        const auth = await loadAnkidoteAuth();
+        if (!auth.loggedIn) {
+            goto("/ankidote/login");
         }
-        return JSON.parse(await resp.text()) as DiagnosticState;
-    }
+    });
 
-    function apply(state: DiagnosticState): void {
+    function apply(state: NextDiagnosticQuestionResponse): void {
         latest = state;
         if (state.finished) {
             phase = "done";
@@ -82,8 +52,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     async function begin(): Promise<void> {
         loading = true;
         errorMessage = "";
+        answers = [];
         try {
-            apply(await post("ankidoteDiagStart", {}));
+            apply(await runDiagnostic({ answers, confidence: {}, maxQuestions: 0 }));
         } catch (err) {
             errorMessage = `Something went wrong: ${err}`;
         } finally {
@@ -97,13 +68,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
         loading = true;
         errorMessage = "";
+        answers = [
+            ...answers,
+            { questionId: question.id, chosenChoice: selectedChoice },
+        ];
         try {
-            apply(
-                await post("ankidoteDiagAnswer", {
-                    itemId: question.id,
-                    chosenChoice: selectedChoice,
-                }),
-            );
+            apply(await runDiagnostic({ answers, confidence: {}, maxQuestions: 0 }));
         } catch (err) {
             errorMessage = `Something went wrong: ${err}`;
         } finally {
@@ -137,7 +107,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 high: latest.score.high,
                 baseline,
                 answered: latest.answered,
-                topicScores: latest.topicScores,
+                topicScores: latest.topicScores.map((t) => ({
+                    topic: t.topic,
+                    theta: t.theta,
+                    standardError: t.standardError,
+                    score: t.score
+                        ? { low: t.score.low, high: t.score.high }
+                        : undefined,
+                    questionsAnswered: t.questionsAnswered,
+                    questionsCorrect: t.questionsCorrect,
+                })),
                 takenAt: Date.now(),
             };
             try {
@@ -148,65 +127,79 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             } catch {
                 // sessionStorage may be unavailable; goal screen falls back.
             }
-            await saveAnkidoteState({ diagnostic });
+            // Append a score snapshot so the My Brew page can plot a real
+            // progress trend as diagnostics accumulate. Merge with the existing
+            // history (the backend merges top-level keys, not arrays).
+            const prev = await loadAnkidoteState();
+            const snapshot: AnkidoteScoreSnapshot = {
+                ts: diagnostic.takenAt,
+                low: diagnostic.low,
+                high: diagnostic.high,
+                baseline,
+            };
+            const scoreHistory = [...(prev.scoreHistory ?? []), snapshot];
+            await saveAnkidoteState({ diagnostic, scoreHistory });
         }
         goto("/ankidote/goal");
     }
 </script>
 
-<main class="diagnostic">
+<Shell align="top" max="44rem">
     {#if phase === "intro"}
-        <section class="panel intro">
-            <span class="eyebrow">Ankidote diagnostic</span>
-            <h1>Find out where you stand.</h1>
-            <p class="sub">
-                An adaptive test: each question is picked to teach us the most about
-                your ability, so it stays short. You'll get a GMAT score range &mdash;
-                overall and per topic &mdash; not a false-precision point score.
-            </p>
-            <ul class="facts">
-                <li>
-                    <b>Adaptive length</b>
-                    &mdash; it stops as soon as your score range is tight enough
-                </li>
-                <li>
-                    <b>Quant, Verbal, Data Insights</b>
-                    &mdash; all three sections
-                </li>
-                <li>
-                    <b>No going back</b>
-                    &mdash; just like test day
-                </li>
-            </ul>
-            <button class="cta" on:click={begin} disabled={loading}>
-                {loading ? "Preparing…" : "Start the diagnostic"}
-            </button>
-            {#if errorMessage}
-                <p class="error">{errorMessage}</p>
-            {/if}
-        </section>
+        <Card>
+            <div class="intro">
+                <Badge variant="green" dot>Ankidote diagnostic</Badge>
+                <h1>Find out where you stand.</h1>
+                <p class="sub">
+                    An adaptive test: each question is picked to teach us the most about
+                    your ability, so it stays short. You'll get a GMAT score range
+                    &mdash; overall and per topic &mdash; not a false-precision point
+                    score.
+                </p>
+                <ul class="facts">
+                    <li>
+                        <b>Adaptive length</b>
+                        &mdash; it stops as soon as your score range is tight enough
+                    </li>
+                    <li>
+                        <b>Quant, Verbal, Data Insights</b>
+                        &mdash; all three sections
+                    </li>
+                    <li>
+                        <b>No going back</b>
+                        &mdash; just like test day
+                    </li>
+                </ul>
+                <Button on:click={begin} disabled={loading}>
+                    {loading ? "Preparing…" : "Start the diagnostic"}
+                </Button>
+                {#if errorMessage}
+                    <p class="error">{errorMessage}</p>
+                {/if}
+            </div>
+        </Card>
     {:else if phase === "question" && question && latest}
-        <section class="panel">
+        <Card>
             <header class="status">
                 <div class="progress-track">
                     <div class="progress-fill" style="width: {progress * 100}%"></div>
                 </div>
                 <div class="status-row">
                     <span class="counter">
-                        Question {latest.answered + 1} &middot; adaptive
+                        Question {latest.answered + 1} · adaptive
                     </span>
                     {#if latest.answered > 0}
                         <span class="score-chip">
-                            current range: <b>{scoreLabel}</b>
+                            current range <b>{scoreLabel}</b>
                         </span>
                     {/if}
                 </div>
             </header>
 
             <div class="tags">
-                <span class="tag section">{sectionNames[question.section] ?? ""}</span>
-                <span class="tag">{question.topic}</span>
-                <span class="tag subtle">{question.subtopic}</span>
+                <Badge variant="green">{sectionNames[question.section] ?? ""}</Badge>
+                <Badge variant="outline">{question.topic}</Badge>
+                <Badge variant="muted">{question.subtopic}</Badge>
             </div>
 
             <p class="stem">{question.stem}</p>
@@ -225,27 +218,28 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </div>
 
             <div class="actions">
-                <button
-                    class="cta"
+                <Button
                     on:click={confirmAnswer}
                     disabled={selectedChoice === null || loading}
                 >
                     {loading ? "Scoring…" : "Confirm answer"}
-                </button>
+                </Button>
             </div>
             {#if errorMessage}
                 <p class="error">{errorMessage}</p>
             {/if}
-        </section>
+        </Card>
     {:else if phase === "done" && latest}
-        <section class="panel results">
-            <span class="eyebrow">Diagnostic complete</span>
-            <h1>Your current score range</h1>
-            <div class="big-score">{scoreLabel}</div>
-            <p class="sub">
-                Based on {latest.answered} adaptive questions. The band narrows as Ankidote
-                gathers more evidence &mdash; certainty is earned, not assumed.
-            </p>
+        <Card>
+            <div class="results">
+                <Badge variant="lime" dot>Diagnostic complete</Badge>
+                <h1>Your current score range</h1>
+                <div class="big-score">{scoreLabel}</div>
+                <p class="sub">
+                    Based on {latest.answered} adaptive questions. The band narrows as Ankidote
+                    gathers more evidence &mdash; certainty is earned, not assumed.
+                </p>
+            </div>
 
             <h2>By topic</h2>
             <div class="topic-table">
@@ -263,65 +257,39 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </div>
 
             <div class="actions split">
-                <button class="ghost" on:click={begin} disabled={loading}>
+                <Button variant="outline" on:click={begin} disabled={loading}>
                     Retake diagnostic
-                </button>
-                <button class="cta" on:click={goToGoal} disabled={loading}>
+                </Button>
+                <Button on:click={goToGoal} disabled={loading}>
                     Set your goal &rarr;
-                </button>
+                </Button>
             </div>
-        </section>
+        </Card>
     {/if}
-</main>
+</Shell>
 
 <style lang="scss">
-    .diagnostic {
-        --accent: #45a05a;
-        --accent-2: #2e7d46;
-        min-height: 100vh;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 3rem 1.5rem;
-        color: var(--fg);
-    }
-
-    .panel {
-        width: 100%;
-        max-width: 44rem;
-        border: 1px solid var(--border);
-        border-radius: 1.2rem;
-        background: var(--canvas-elevated, var(--canvas));
-        padding: 2.2rem 2.4rem 2.4rem;
-    }
-
-    .eyebrow {
-        display: inline-block;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--accent);
-        margin-bottom: 0.8rem;
-    }
+    @use "../_lib/theme" as ad;
 
     h1 {
+        font-family: ad.$font-heading;
         font-size: clamp(1.6rem, 4vw, 2.2rem);
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: -0.02em;
-        margin: 0 0 0.8rem;
+        margin: 1rem 0 0.8rem;
     }
 
     h2 {
+        font-family: ad.$font-heading;
         font-size: 1.05rem;
-        font-weight: 700;
+        font-weight: 600;
         margin: 2rem 0 0.8rem;
     }
 
     .sub {
         font-size: 1rem;
         line-height: 1.6;
-        opacity: 0.8;
+        color: ad.$muted;
         margin: 0 0 1.4rem;
     }
 
@@ -331,17 +299,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin: 0 0 1.8rem;
 
         li {
-            padding: 0.45rem 0;
-            border-bottom: 1px solid var(--border);
+            padding: 0.55rem 0;
+            border-bottom: 1px solid ad.$border;
             font-size: 0.95rem;
-            opacity: 0.9;
+            color: ad.$muted;
 
             &:last-child {
                 border-bottom: none;
             }
 
             b {
-                color: var(--accent);
+                color: ad.$fg;
+                font-weight: 600;
             }
         }
     }
@@ -352,16 +321,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .progress-track {
         height: 6px;
-        border-radius: 999px;
-        background: var(--border);
+        border-radius: ad.$r-pill;
+        background: rgba(255, 255, 255, 0.08);
         overflow: hidden;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.7rem;
     }
 
     .progress-fill {
         height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        border-radius: ad.$r-pill;
+        background: linear-gradient(to right, ad.$serum, ad.$green);
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
         transition: width 0.3s ease;
     }
 
@@ -369,42 +339,24 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.85rem;
-        opacity: 0.85;
+        font-family: ad.$font-mono;
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        color: ad.$muted;
     }
 
     .score-chip {
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.2rem 0.7rem;
-
         b {
-            color: var(--accent);
+            color: ad.$green;
+            margin-left: 0.3rem;
         }
     }
 
     .tags {
         display: flex;
-        gap: 0.4rem;
+        gap: 0.45rem;
         flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    .tag {
-        font-size: 0.78rem;
-        font-weight: 600;
-        padding: 0.25rem 0.7rem;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-
-        &.section {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        &.subtle {
-            opacity: 0.65;
-        }
+        margin-bottom: 1.2rem;
     }
 
     .stem {
@@ -417,39 +369,42 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .choices {
         display: flex;
         flex-direction: column;
-        gap: 0.55rem;
+        gap: 0.6rem;
     }
 
     .choice {
         display: flex;
         align-items: center;
-        gap: 0.8rem;
+        gap: 0.85rem;
         width: 100%;
         text-align: start;
+        font-family: ad.$font-body;
         font-size: 0.98rem;
         line-height: 1.45;
-        padding: 0.75rem 0.9rem;
-        border: 1px solid var(--border);
-        border-radius: 0.7rem;
-        background: transparent;
-        color: var(--fg);
+        padding: 0.8rem 0.95rem;
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-input;
+        background: rgba(0, 0, 0, 0.25);
+        color: ad.$fg;
         cursor: pointer;
         transition:
-            border-color 0.12s ease,
-            background 0.12s ease;
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease;
 
         &:hover {
-            border-color: var(--accent);
+            border-color: ad.$border-hi;
         }
 
         &.selected {
-            border-color: var(--accent);
-            background: rgba(69, 160, 90, 0.1);
+            border-color: ad.$green;
+            background: ad.$green-wash;
+            box-shadow: 0 0 20px -8px rgba(34, 197, 94, 0.5);
 
             .letter {
-                background: var(--accent);
+                background: linear-gradient(to right, ad.$serum, ad.$green);
                 color: #fff;
-                border-color: var(--accent);
+                border-color: transparent;
             }
         }
     }
@@ -459,12 +414,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 1.7rem;
-        height: 1.7rem;
+        width: 1.8rem;
+        height: 1.8rem;
         border-radius: 50%;
-        border: 1px solid var(--border);
+        border: 1px solid ad.$border;
+        font-family: ad.$font-mono;
         font-size: 0.8rem;
-        font-weight: 700;
+        font-weight: 500;
     }
 
     .actions {
@@ -476,56 +432,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .actions.split {
         justify-content: space-between;
         align-items: center;
-    }
-
-    .ghost {
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.7rem 1.4rem;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--fg);
-        background: transparent;
-        cursor: pointer;
-        transition: border-color 0.15s ease;
-
-        &:hover:not(:disabled) {
-            border-color: var(--accent);
-        }
-
-        &:disabled {
-            opacity: 0.55;
-            cursor: default;
-        }
-    }
-
-    .cta {
-        border: none;
-        border-radius: 999px;
-        padding: 0.75rem 1.8rem;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff;
-        cursor: pointer;
-        background: linear-gradient(120deg, var(--accent), var(--accent-2));
-        box-shadow: 0 5px 16px rgba(69, 160, 90, 0.28);
-        transition:
-            transform 0.15s ease,
-            opacity 0.15s ease;
-
-        &:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        &:disabled {
-            opacity: 0.55;
-            cursor: default;
-        }
+        gap: 1rem;
     }
 
     .error {
         margin-top: 1rem;
-        color: #e05b5b;
+        color: ad.$danger;
         font-size: 0.9rem;
     }
 
@@ -533,26 +445,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         text-align: center;
 
         .big-score {
-            font-size: clamp(2.6rem, 8vw, 4rem);
-            font-weight: 800;
+            font-family: ad.$font-heading;
+            font-size: clamp(2.8rem, 9vw, 4.4rem);
+            font-weight: 700;
             letter-spacing: -0.03em;
-            background: linear-gradient(120deg, var(--accent), var(--accent-2));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            @include ad.gradient-text(ad.$green, ad.$lime);
             margin: 0.4rem 0 1rem;
-        }
-
-        h2 {
-            text-align: start;
         }
     }
 
     .topic-table {
         display: flex;
         flex-direction: column;
-        border: 1px solid var(--border);
-        border-radius: 0.8rem;
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-card-sm;
         overflow: hidden;
     }
 
@@ -561,12 +467,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         grid-template-columns: 1fr auto auto;
         gap: 1rem;
         align-items: center;
-        padding: 0.7rem 1rem;
+        padding: 0.75rem 1rem;
         font-size: 0.92rem;
         text-align: start;
 
         &:not(:last-child) {
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid ad.$border;
         }
     }
 
@@ -575,11 +481,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .topic-correct {
-        opacity: 0.7;
+        font-family: ad.$font-mono;
+        font-size: 0.82rem;
+        color: ad.$muted;
     }
 
     .topic-range {
-        font-weight: 700;
-        color: var(--accent);
+        font-family: ad.$font-mono;
+        font-weight: 500;
+        color: ad.$green;
     }
 </style>

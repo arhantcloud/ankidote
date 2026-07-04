@@ -26,7 +26,7 @@ from aqt.operations.deck import (
 from aqt.qt import *
 from aqt.sound import av_player
 from aqt.toolbar import BottomBar
-from aqt.utils import getOnlyText, openLink, shortcut, showInfo, tr
+from aqt.utils import getOnlyText, openLink, shortcut, showInfo, tooltip, tr
 
 
 class DeckBrowserBottomBar:
@@ -134,6 +134,8 @@ class DeckBrowser:
             set_current_deck(
                 parent=self.mw, deck_id=DeckId(int(arg))
             ).run_in_background()
+        elif cmd == "ankidote_sync":
+            self._ankidote_sync_now()
         return False
 
     def set_current_deck(self, deck_id: DeckId) -> None:
@@ -387,11 +389,48 @@ class DeckBrowser:
                 b[0] = tr.actions_shortcut_key(val=shortcut(b[0]))
             buf += """
 <button title='%s' onclick='pycmd(\"%s\");'>%s</button>""" % tuple(b)
+        # Ankidote: pull the latest scheduling/progress from Firebase on demand,
+        # so reviews done on the mobile app show up without restarting Anki.
+        if self._ankidote_logged_in():
+            buf += (
+                "<button title='Pull your latest Ankidote progress from the cloud' "
+                "onclick='pycmd(\"ankidote_sync\");'>Sync now</button>"
+            )
         self.bottom.draw(
             buf=buf,
             link_handler=self._linkHandler,
             web_context=DeckBrowserBottomBar(self),
         )
+
+    @staticmethod
+    def _ankidote_logged_in() -> bool:
+        try:
+            from aqt.ankidote import sync as ankidote_sync
+
+            return ankidote_sync.is_logged_in()
+        except Exception:
+            return False
+
+    def _ankidote_sync_now(self) -> None:
+        from aqt.ankidote import sync as ankidote_sync
+
+        if not ankidote_sync.is_logged_in():
+            showInfo("Sign in to Ankidote first to sync your progress.")
+            return
+
+        def op(_col: Collection) -> None:
+            # Pulls the app blob + per-card scheduling from Firestore into the
+            # local collection (see aqt.ankidote.sync.pull_all).
+            ankidote_sync.pull_all(self.mw)
+
+        def success(_: None) -> None:
+            self.mw.col.reset()
+            self.refresh()
+            tooltip("Synced with Ankidote", parent=self.mw)
+
+        QueryOp(parent=self.mw, op=op, success=success).with_progress(
+            "Syncing with Ankidote…"
+        ).run_in_background()
 
     def _onShared(self) -> None:
         openLink(f"{aqt.appShared}decks/")

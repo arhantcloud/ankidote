@@ -11,7 +11,6 @@ import aqt
 from anki.sync import SyncStatus
 from aqt import gui_hooks, props
 from aqt.qt import *
-from aqt.sync import get_sync_status
 from aqt.theme import theme_manager
 from aqt.utils import tr
 from aqt.webview import AnkiWebView, AnkiWebViewKind
@@ -367,7 +366,7 @@ class Toolbar:
             ),
         ]
 
-        links.append(self._create_sync_link())
+        # AnkiWeb sync removed; Ankidote syncs via Firebase instead.
 
         gui_hooks.top_toolbar_did_init_links(links, self)
 
@@ -413,7 +412,8 @@ class Toolbar:
         self.web.eval(f"updateSyncColor({status.required})")
 
     def update_sync_status(self) -> None:
-        get_sync_status(self.mw, self.mw.toolbar.set_sync_status)
+        # AnkiWeb sync removed; nothing to poll.
+        return
 
     # Link handling
     ######################################################################

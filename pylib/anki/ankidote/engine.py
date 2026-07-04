@@ -45,7 +45,8 @@ class CatSession:
     theta: float = 0.0
     stopper: Stopper = field(default_factory=Stopper)
     _administered: list[Item] = field(default_factory=list)
-    _responses: list[bool] = field(default_factory=list)
+    # Graded responses in [0, 1]; dichotomous items store 0.0 / 1.0.
+    _responses: list[float] = field(default_factory=list)
     _se: float = irt.MAX_SE
 
     def __post_init__(self) -> None:
@@ -58,7 +59,9 @@ class CatSession:
 
     @property
     def correct(self) -> int:
-        return sum(self._responses)
+        # Rounded so partial-credit (graded) responses still report a sensible
+        # "questions correct" tally; dichotomous responses are unaffected.
+        return int(round(sum(self._responses)))
 
     @property
     def se(self) -> float:
@@ -85,10 +88,22 @@ class CatSession:
             return None
         return max(candidates, key=lambda it: irt.information(self.theta, *it.params))
 
-    def record_response(self, item: Item, correct: bool) -> None:
-        """Record a graded response and re-estimate theta and SE."""
+    def record_response(
+        self, item: Item, correct: bool | float, *, revealed: bool = False
+    ) -> None:
+        """Record a response and re-estimate theta and SE.
+
+        ``correct`` is dichotomous (``bool``) for single-choice answers or a
+        graded score ``g ∈ [0, 1]`` for answer-choice ranking (partial credit).
+
+        Give-up rule (PRD §4): if the answer was reached only after the card was
+        revealed or explicitly marked "don't know" (``revealed=True``), it is
+        recorded as **not known** (0.0) no matter which choice was submitted, so
+        a revealed card can never lift the ability estimate.
+        """
+        graded = 0.0 if revealed else float(correct)
         self._administered.append(item)
-        self._responses.append(correct)
+        self._responses.append(graded)
         params = [it.params for it in self._administered]
         self.theta = irt.estimate_theta(params, self._responses, prior=self._prior)
         self._se = irt.standard_error(self.theta, params)

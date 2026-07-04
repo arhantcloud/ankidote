@@ -100,7 +100,10 @@ def main() -> int:
         meta = items_meta.get(iid, {})
         records.append({
             "item_id": iid,
+            "scraped_section": meta.get("scraped_section"),
             "section": meta.get("section"),
+            "topic": meta.get("topic"),
+            "subtopic": meta.get("subtopic"),
             "question_name": meta.get("question_name"),
             "difficulty_label": meta.get("difficulty_label"),
             "irt": {"a_discrimination": round(a, 6), "b_difficulty": round(b, 6),
@@ -108,6 +111,8 @@ def main() -> int:
             "question_text": meta.get("question_text"),
             "answers": meta.get("answers"),
             "correct_answer": meta.get("correct_answer"),
+            "correct_index": meta.get("correct_index"),
+            "choice_order": meta.get("choice_order"),
         })
 
     json_path = os.path.join(args.outdir, "item_bank.json")

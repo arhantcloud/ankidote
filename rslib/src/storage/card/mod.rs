@@ -893,6 +893,9 @@ fn review_order_sql(order: ReviewCardOrder, timing: SchedTimingToday, fsrs: bool
         ReviewCardOrder::Random => vec![],
         ReviewCardOrder::Added => vec![ReviewOrderSubclause::Added],
         ReviewCardOrder::ReverseAdded => vec![ReviewOrderSubclause::ReverseAdded],
+        // Gather by due date; the points-at-stake priority is applied as a
+        // stable re-sort in the queue builder (it needs the ankidote blob).
+        ReviewCardOrder::PointsAtStake => vec![ReviewOrderSubclause::Day],
     };
     subclauses.push(ReviewOrderSubclause::Random);
 

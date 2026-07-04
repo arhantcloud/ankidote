@@ -25,6 +25,9 @@ docs/_build/
 docs/autoapi/
 .complexipy_cache
 
+# Local secrets (API keys etc.) — never commit
+.env
+
 # Ankidote mobile (Xcode)
 mobile/AnkidoteMobile/build/
 **/xcuserdata/

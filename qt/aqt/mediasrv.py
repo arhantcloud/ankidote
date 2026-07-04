@@ -732,7 +732,10 @@ def ankidote_diag_answer() -> bytes:
     runner = getattr(aqt.mw, "_ankidote_diag", None)
     if runner is None:
         raise RuntimeError("diagnostic not started")
-    runner.answer(str(body["itemId"]), int(body["chosenChoice"]))
+    revealed = bool(body.get("revealed") or body.get("gaveUp"))
+    runner.answer(
+        str(body["itemId"]), int(body["chosenChoice"]), revealed=revealed
+    )
     return _ankidote_json_response(runner.state())
 
 
@@ -743,37 +746,35 @@ def ankidote_diag_state() -> bytes:
     return _ankidote_json_response(runner.state())
 
 
-# Persisted Ankidote state (diagnostic result, study plan, user inputs). When
-# logged in to AnkiWeb it lives in the collection config so it saves locally and
-# syncs like any other collection data (kept small, a few KB, per the set_config
-# contract). When logged out it lives in a LOCAL-ONLY profile scratch that never
-# syncs, so a logged-out onboarding run can never overwrite the account's cloud
-# data; the scratch starts empty on logout, restarting the flow at the
-# diagnostic, and is discarded on login when the synced data takes over.
+# Persisted Ankidote state (diagnostic result, study plan, user inputs). The
+# collection config is the local working store (instant + offline). When the
+# user is signed in to Firebase it is also mirrored to Firestore per-user, so it
+# syncs across devices without AnkiWeb (see aqt.ankidote.sync).
 _ANKIDOTE_CONFIG_KEY = "ankidote"
-_ANKIDOTE_SCRATCH_KEY = "ankidote_scratch"
 
 
 def _ankidote_logged_in() -> bool:
-    return aqt.mw.pm.sync_auth() is not None
+    from aqt.ankidote import sync as ankidote_sync
+
+    return ankidote_sync.is_logged_in()
 
 
 def _ankidote_state_read() -> dict:
-    if _ankidote_logged_in():
-        state = aqt.mw.col.get_config(_ANKIDOTE_CONFIG_KEY, {}) or {}
-    else:
-        profile = aqt.mw.pm.profile or {}
-        state = profile.get(_ANKIDOTE_SCRATCH_KEY, {}) or {}
+    state = aqt.mw.col.get_config(_ANKIDOTE_CONFIG_KEY, {}) or {}
     if not isinstance(state, dict):
         state = {}
     return state
 
 
 def _ankidote_state_write(state: dict) -> None:
-    if _ankidote_logged_in():
-        aqt.mw.col.set_config(_ANKIDOTE_CONFIG_KEY, state)
-    elif aqt.mw.pm.profile is not None:
-        aqt.mw.pm.profile[_ANKIDOTE_SCRATCH_KEY] = state
+    aqt.mw.col.set_config(_ANKIDOTE_CONFIG_KEY, state)
+    # Mirror to Firestore when signed in (best-effort; never blocks the write).
+    try:
+        from aqt.ankidote import sync as ankidote_sync
+
+        ankidote_sync.push_app_blob(aqt.mw)
+    except Exception as exc:
+        print("ankidote: app blob push skipped:", exc)
 
 
 def ankidote_state_get() -> bytes:
@@ -794,6 +795,43 @@ def ankidote_state_set() -> bytes:
     payload = dict(state)
     payload["loggedIn"] = _ankidote_logged_in()
     return _ankidote_json_response(payload)
+
+
+# --- Firebase auth endpoints -------------------------------------------
+
+
+def ankidote_auth_state() -> bytes:
+    from aqt.ankidote import sync as ankidote_sync
+
+    return _ankidote_json_response(ankidote_sync.auth_state())
+
+
+def ankidote_auth_login() -> bytes:
+    from aqt.ankidote import sync as ankidote_sync
+    from aqt.ankidote.firebase import FirebaseError
+
+    body = json.loads(request.data or b"{}")
+    email = str(body.get("email", "")).strip()
+    password = str(body.get("password", ""))
+    create = bool(body.get("create", False))
+    if not email or not password:
+        return _ankidote_json_response(
+            {"ok": False, "error": "Enter your email and password."}
+        )
+    try:
+        ankidote_sync.login(aqt.mw, email, password, create)
+    except FirebaseError as exc:
+        return _ankidote_json_response({"ok": False, "error": str(exc)})
+    payload = ankidote_sync.auth_state()
+    payload["ok"] = True
+    return _ankidote_json_response(payload)
+
+
+def ankidote_auth_logout() -> bytes:
+    from aqt.ankidote import sync as ankidote_sync
+
+    ankidote_sync.logout(aqt.mw)
+    return _ankidote_json_response({"ok": True, "loggedIn": False})
 
 
 # Basic study loop (PRD §5, minimal): pick lowest-scoring topic -> study its
@@ -856,6 +894,45 @@ def _ankidote_immature_baseline(state: dict, topic: str):
     return entry.get("immatureAtLastProblems")
 
 
+def _ankidote_mastery_delta(col, state: dict, topic: str) -> int:
+    """Cards that have matured past the 3-day mark since the problem baseline."""
+    immature, _mastered, _total = _ankidote_topic_counts(col, topic)
+    baseline = _ankidote_immature_baseline(state, topic)
+    if baseline is None:
+        baseline = immature
+    return baseline - immature
+
+
+def ankidote_reviewer_topic() -> str | None:
+    """The Ankidote topic of the currently selected deck, if any (for the
+    reviewer's loop/problems button)."""
+    deck = aqt.mw.col.decks.current()
+    name = deck.get("name", "") if deck else ""
+    prefix = "Ankidote "
+    return name[len(prefix):] if name.startswith(prefix) else None
+
+
+def ankidote_problems_ready(topic: str) -> bool:
+    """Whether enough cards have matured for this topic to unlock its problem
+    set (the loop's maturity threshold), used to light up the reviewer button.
+
+    Unlike the in-loop gate this does not require the deck to be *done* for the
+    day — the point is to surface "problems unlocked" mid-review the moment the
+    threshold is crossed. A topic still owing its organize lesson is not ready.
+    """
+    try:
+        from anki.ankidote import organize
+
+        col = aqt.mw.col
+        state = _ankidote_state_read()
+        if organize.gate_topic(state, topic):
+            return False
+        return _ankidote_mastery_delta(col, state, topic) >= _ANKIDOTE_MASTERY_DELTA
+    except Exception as exc:
+        print("ankidote: problems-ready check skipped:", exc)
+        return False
+
+
 def _ankidote_topic_score(diagnostic: dict, topic: str):
     for entry in diagnostic.get("topicScores", []) or []:
         if entry.get("topic") == topic:
@@ -904,7 +981,67 @@ def _ankidote_loop_topic_payload(
     return payload
 
 
+def _ankidote_organize_gate(state: dict, topic: str) -> dict | None:
+    """If ``topic`` must be organized first, the loop payload that redirects to
+    the mandatory concept lesson; otherwise ``None``."""
+    from anki.ankidote import organize
+    from anki.ankidote import topics as ankidote_topics
+
+    if not organize.gate_topic(state, topic):
+        return None
+    section = ankidote_topics.section_for_topic(topic)
+    return {
+        "phase": "organize",
+        "topic": topic,
+        "section": section,
+        "sectionLabel": ankidote_topics.SECTION_LABELS.get(section, section),
+    }
+
+
+def _ankidote_common_fields(state: dict) -> dict:
+    """Global, toggle-gated fields merged into every logged-in loop payload.
+
+    The backend is authoritative for gating: the UI only renders a feature's
+    affordance when its commitment flag is on here. Includes the commitment
+    flags, the Antidote plan vial, the weekly problem quota, and the check-in /
+    organize cadence status.
+    """
+    from anki.ankidote import commitments, plan_projection, scores
+
+    flags = commitments.flags(state)
+    fields: dict = {"commitments": flags}
+
+    # Antidote vial + weekly problem quota (throughput pace, PRD §3.2).
+    fields["planVial"] = plan_projection.vial_state(state)
+    if flags.get("problems"):
+        fields["quota"] = plan_projection.quota(state)
+
+    # Diagnostic check-in cadence (PRD §6.5): due after the cadence elapses,
+    # blocking once overdue past the grace window.
+    if flags.get("checkins"):
+        diagnostic = state.get("diagnostic") or {}
+        checkins = state.get("checkins") or {}
+        every = int(checkins.get("everyDays", 7))
+        grace = int(checkins.get("graceDays", 3))
+        last = checkins.get("lastAt") or diagnostic.get("takenAt")
+        if last and diagnostic.get("topicScores"):
+            days = (time.time() * 1000 - last) / 86_400_000
+            fields["checkinDue"] = days >= every
+            fields["checkinBlocking"] = days >= every + grace
+            fields["checkinStaleTopics"] = scores.stalest_topics(diagnostic, k=3)
+
+    return fields
+
+
 def _ankidote_loop_state_payload() -> dict:
+    """Loop payload augmented with the global toggle-gated feature fields."""
+    payload = _ankidote_loop_base_payload()
+    if payload.get("phase") != "login_required":
+        payload.update(_ankidote_common_fields(_ankidote_state_read()))
+    return payload
+
+
+def _ankidote_loop_base_payload() -> dict:
     from anki.ankidote import topics as ankidote_topics
 
     # Studying / deck creation is only available while logged in; a logged-out
@@ -917,8 +1054,29 @@ def _ankidote_loop_state_payload() -> dict:
     diagnostic = state.get("diagnostic") or {}
     target = int((state.get("plan") or {}).get("desiredScore", 705))
 
-    # An active problem session takes precedence.
+    # A pending mistake-review / reveal step takes precedence over everything so
+    # a page refresh mid-review lands back on the same gated step.
+    reveal = getattr(aqt.mw, "_ankidote_reveal", None)
     loop = getattr(aqt.mw, "_ankidote_loop", None)
+    if reveal is not None and loop is not None:
+        return _ankidote_loop_topic_payload(
+            state,
+            loop.topic,
+            loop.section,
+            ankidote_topics.topic_weight(loop.topic),
+            "reveal",
+            **_ankidote_reveal_block(reveal),
+        )
+
+    # An in-progress organize lesson takes precedence over topic selection so a
+    # refresh mid-lesson lands back on it.
+    organize_sess = getattr(aqt.mw, "_ankidote_organize", None)
+    if isinstance(organize_sess, dict) and organize_sess.get("phase") != "done":
+        from anki.ankidote import organize as _organize
+
+        return _organize.payload(organize_sess)
+
+    # An active problem session takes precedence.
     if loop is not None:
         phase = "update" if loop.finished else "problems"
         payload = _ankidote_loop_topic_payload(
@@ -936,13 +1094,18 @@ def _ankidote_loop_state_payload() -> dict:
     if not isinstance(skipped, set):
         skipped = set()
 
-    # Just finished (or returned from) studying a topic's deck.
+    # Just finished (or returned from) studying a topic's deck. Returning to
+    # the loop must stay on the same topic (so the user can do its problems) —
+    # only an explicit "Study a different topic" (which adds the topic to
+    # `skipped`) or finishing its problem set moves the loop on.
     last = getattr(aqt.mw, "_ankidote_last_studied", None)
-    if last:
+    if last and last not in skipped:
+        gate = _ankidote_organize_gate(state, last)
+        if gate is not None:
+            return gate
         if _ankidote_done_for_day(col, last):
             # Deck is done for today: offer a problem set if enough cards have
-            # matured since the baseline, otherwise fall through to the next
-            # topic.
+            # matured since the baseline.
             immature, mastered, total = _ankidote_topic_counts(col, last)
             baseline = _ankidote_immature_baseline(state, last)
             if baseline is None:
@@ -961,21 +1124,32 @@ def _ankidote_loop_state_payload() -> dict:
                     mastered=mastered,
                     total=total,
                 )
-            # Not a significant change -> stop offering for this study bout.
-            aqt.mw._ankidote_last_studied = None
-        elif last not in skipped:
-            # Still cards left on the topic being studied -> return to it (this
-            # is what "← Loop" from the reviewer lands on).
-            return _ankidote_loop_topic_payload(
-                state,
-                last,
-                ankidote_topics.section_for_topic(last),
-                ankidote_topics.topic_weight(last),
-                "cards",
-            )
+            # Deck done but not enough cards have matured for a fresh problem
+            # set yet. Stay on this same topic (cards phase, with the problems
+            # button gated) rather than auto-jumping to a different topic.
+        # Return to the topic being studied (this is what "← Loop" from the
+        # reviewer and "Back to your Ankidote study loop" from congrats land
+        # on). Problems for the topic remain reachable via the gated button.
+        return _ankidote_loop_topic_payload(
+            state,
+            last,
+            ankidote_topics.section_for_topic(last),
+            ankidote_topics.topic_weight(last),
+            "cards",
+        )
 
     # Otherwise pick the lowest-scoring topic that's neither done for today nor
     # set aside via "another topic".
+    return _ankidote_loop_select_payload(state, col, diagnostic, target, skipped)
+
+
+def _ankidote_loop_select_payload(
+    state: dict, col, diagnostic: dict, target: int, skipped: set
+) -> dict:
+    """Pick the next weakest topic and return its loop payload (cards or the
+    mandatory organize gate); day-done / empty when nothing is left."""
+    from anki.ankidote import topics as ankidote_topics
+
     done = {
         info.topic
         for info in ankidote_topics.topic_tree()
@@ -995,6 +1169,9 @@ def _ankidote_loop_state_payload() -> dict:
                 overall = {"low": diagnostic["low"], "high": diagnostic["high"]}
             return {"phase": "day_done", "target": target, "overall": overall}
         return {"phase": "empty"}
+    gate = _ankidote_organize_gate(state, info.topic)
+    if gate is not None:
+        return gate
     return _ankidote_loop_topic_payload(
         state, info.topic, info.section, info.weight, "cards"
     )
@@ -1005,8 +1182,9 @@ def ankidote_loop_state() -> bytes:
 
 
 def ankidote_loop_start() -> bytes:
+    from anki.ankidote import commitments
     from anki.ankidote import topics as ankidote_topics
-    from anki.ankidote.loop import LoopSession, _problem_to_wire
+    from anki.ankidote.loop import LoopSession
 
     if not _ankidote_logged_in():
         return _ankidote_json_response({"phase": "login_required"})
@@ -1027,41 +1205,307 @@ def ankidote_loop_start() -> bytes:
             return _ankidote_json_response({"phase": "empty"})
         topic, section = info.topic, info.section
 
-    loop = LoopSession(topic, section, theta0=_ankidote_theta_for(diagnostic, topic))
+    # Problems are blocked until the mandatory concept lesson is done.
+    gate = _ankidote_organize_gate(state, topic)
+    if gate is not None:
+        return _ankidote_json_response(gate)
+
+    # The chosen problems/hr pace sets how many problems this set serves.
+    loop = LoopSession(
+        topic,
+        section,
+        theta0=_ankidote_theta_for(diagnostic, topic),
+        pace=commitments.pace(state, "problems"),
+    )
     aqt.mw._ankidote_loop = loop
+    aqt.mw._ankidote_reveal = None
     item = loop.next_problem()
     payload = _ankidote_loop_state_payload()
-    payload["question"] = _problem_to_wire(item) if item else None
+    payload["question"] = _ankidote_wire_problem(state, item)
     return _ankidote_json_response(payload)
 
 
-def ankidote_loop_answer() -> bytes:
+def _ankidote_wire_problem(state: dict, item) -> dict | None:
+    """Wire form of a problem, with any prior note-to-self attached."""
+    from anki.ankidote import commitments
     from anki.ankidote import loop as ankidote_loop
     from anki.ankidote.loop import _problem_to_wire
+
+    if item is None:
+        return None
+    wire = _problem_to_wire(item)
+    # Pre-attempt callout: surface the note the user left the last time they
+    # missed this problem (note-to-self, PRD §5.2).
+    if commitments.enabled(state, "noteToSelf"):
+        note = ankidote_loop.get_note(state, item.id)
+        if note:
+            wire["note"] = note.get("text", "")
+    return wire
+
+
+def _ankidote_reveal_block(reveal: dict) -> dict:
+    """The reveal/mistake/note fields the UI renders after an answer."""
+    verdict = reveal.get("verdict") or {}
+    block: dict = {
+        "reveal": {
+            "correct": verdict.get("correct"),
+            "score": verdict.get("score"),
+            "correctChoice": verdict.get("correctChoice"),
+            "correctRanking": verdict.get("correctRanking"),
+            "choices": verdict.get("choices"),
+            "chosenChoice": verdict.get("chosenChoice"),
+            "ranking": verdict.get("ranking"),
+            "explanation": verdict.get("explanation"),
+            "impact": reveal.get("impact"),
+        },
+        "resolved": reveal.get("resolved", True),
+    }
+    if reveal.get("needMistake"):
+        until = reveal.get("penaltyUntilMs")
+        remaining = max(0, int(until) - int(time.time() * 1000)) if until else 0
+        block["mistake"] = {
+            "required": True,
+            "resolved": reveal.get("resolved", False),
+            "attempts": reveal.get("attempts", 0),
+            "maxAttempts": _ANKIDOTE_MAX_EXPLANATION_ATTEMPTS,
+            "hints": reveal.get("hints", []),
+            "feedback": reveal.get("feedback", ""),
+            "forced": reveal.get("forced", False),
+            "solution": reveal.get("solution", ""),
+            "penaltySeconds": reveal.get("penaltySeconds", 0),
+            "penaltyRemainingMs": remaining,
+            "savedSeconds": reveal.get("savedSeconds", 0),
+        }
+    if reveal.get("noteDue"):
+        block["noteToSelf"] = {
+            "due": True,
+            "saved": reveal.get("noteSaved", False),
+            "problemId": verdict.get("problemId"),
+        }
+    return block
+
+
+def _ankidote_apply_finish(loop) -> None:
+    """Persist a finished topic's estimate + re-baseline its mastery gate."""
+    from anki.ankidote import loop as ankidote_loop
+
+    col = aqt.mw.col
+    state = _ankidote_state_read()
+    state = ankidote_loop.apply_result(state, loop.result())
+    _ankidote_set_mastery_baseline(state, col, loop.topic)
+    # Stamp when this topic was last measured, for check-in staleness ranking.
+    _ankidote_stamp_measured(state, loop.topic)
+    _ankidote_state_write(state)
+    aqt.mw._ankidote_last_studied = None
+    try:
+        from aqt.ankidote import schedsync
+
+        schedsync.push_scheduling(aqt.mw, topics=[loop.topic])
+    except Exception as exc:
+        print("ankidote: scheduling push skipped:", exc)
+
+
+def _ankidote_stamp_measured(state: dict, topic: str) -> None:
+    diagnostic = state.get("diagnostic") or {}
+    for entry in diagnostic.get("topicScores", []) or []:
+        if entry.get("topic") == topic:
+            entry["measuredAt"] = int(time.time() * 1000)
+            break
+
+
+def ankidote_loop_answer() -> bytes:
+    from anki.ankidote import commitments, scores
 
     body = json.loads(request.data or b"{}")
     loop = getattr(aqt.mw, "_ankidote_loop", None)
     if loop is None:
         raise RuntimeError("loop not started")
-    loop.answer(str(body["problemId"]), int(body["chosenChoice"]))
-    if loop.finished:
-        # Persist updated topic theta/score, and re-baseline this topic's
-        # mastery so the next problem set waits for fresh maturity.
-        col = aqt.mw.col
-        state = _ankidote_state_read()
-        state = ankidote_loop.apply_result(state, loop.result())
-        _ankidote_set_mastery_baseline(state, col, loop.topic)
+
+    ranking = body.get("ranking")
+    ranking = [int(i) for i in ranking] if isinstance(ranking, list) else None
+    chosen = body.get("chosenChoice")
+    chosen = int(chosen) if chosen is not None else None
+
+    # Answer-choice ranking is a server-side gate when the commitment is on.
+    state = _ankidote_state_read()
+    if commitments.enabled(state, "ranking") and ranking is None and chosen is None:
+        raise ValueError("ranking required")
+
+    revealed = bool(body.get("revealed") or body.get("gaveUp"))
+    before = scores.score_range(loop.session.theta, loop.session.se)
+    verdict = loop.answer(
+        str(body["problemId"]), chosen, ranking=ranking, revealed=revealed
+    )
+    after = scores.score_range(loop.session.theta, loop.session.se)
+
+    mistakes_on = commitments.enabled(state, "mistakes")
+    explain_on = commitments.enabled(state, "explain")
+    need_mistake = (mistakes_on or explain_on) and not verdict["correct"]
+
+    note_due = False
+    if not verdict["correct"]:
+        from anki.ankidote import loop as ankidote_loop
+
+        count = ankidote_loop.bump_miss(state, verdict["problemId"])
+        note_due = (
+            commitments.enabled(state, "noteToSelf")
+            and count >= 2
+            and ankidote_loop.get_note(state, verdict["problemId"]) is None
+        )
         _ankidote_state_write(state)
-        aqt.mw._ankidote_last_studied = None
-    nxt = None if loop.finished else loop.next_problem()
+
+    show_reveal = need_mistake or note_due or ranking is not None or (
+        not verdict["correct"]
+    )
+
+    if not show_reveal:
+        # Simple correct single-choice answer: advance immediately (old UX).
+        aqt.mw._ankidote_reveal = None
+        return _ankidote_advance_after_answer(loop)
+
+    aqt.mw._ankidote_reveal = {
+        "verdict": verdict,
+        "needMistake": need_mistake,
+        "resolved": not need_mistake,
+        "attempts": 0,
+        "hints": [],
+        "feedback": "",
+        "noteDue": note_due,
+        "noteSaved": False,
+        "impact": {
+            "before": {"low": before.low, "high": before.high},
+            "after": {"low": after.low, "high": after.high},
+        },
+    }
+    return _ankidote_json_response(_ankidote_loop_state_payload())
+
+
+def _ankidote_advance_after_answer(loop) -> bytes:
+    """Finish the topic (if the set is done) or serve the next problem."""
+    state = _ankidote_state_read()
+    if loop.finished:
+        _ankidote_apply_finish(loop)
+        payload = _ankidote_loop_state_payload()
+        payload["question"] = None
+        return _ankidote_json_response(payload)
+    nxt = loop.next_problem()
     payload = _ankidote_loop_state_payload()
-    payload["question"] = _problem_to_wire(nxt) if nxt else None
+    payload["question"] = _ankidote_wire_problem(state, nxt)
     return _ankidote_json_response(payload)
+
+
+# Mistake-review gate: pass on a good explanation, or after this many incorrect
+# tries the learner is let through but must sit out a penalty timer first.
+_ANKIDOTE_MAX_EXPLANATION_ATTEMPTS = 2
+_ANKIDOTE_PENALTY_SECONDS = 10
+
+
+def ankidote_loop_mistake() -> bytes:
+    """Grade the student's explanation; gate the next problem on getting it right.
+
+    The learner passes on a genuinely correct explanation. After
+    ``_ANKIDOTE_MAX_EXPLANATION_ATTEMPTS`` incorrect explanations they are let
+    through anyway (the correct reasoning is shown), but a 10-second unskippable
+    penalty timer must elapse before the next problem unlocks.
+    """
+    from anki.ankidote import ai
+    from anki.ankidote import loop as ankidote_loop
+
+    body = json.loads(request.data or b"{}")
+    why = str(body.get("why", ""))
+    reveal = getattr(aqt.mw, "_ankidote_reveal", None)
+    if reveal is None:
+        raise RuntimeError("no mistake pending")
+    verdict = reveal["verdict"]
+    attempts = int(reveal.get("attempts", 0))
+
+    state = _ankidote_state_read()
+    problem = {
+        "stem": verdict.get("stem"),
+        "choices": verdict.get("choices"),
+        "correct": verdict.get("correctChoice"),
+        "explanation": verdict.get("explanation"),
+    }
+    grade = ai.grade_explanation(state, problem, why, attempts)
+    new_attempts = attempts + 1
+    reveal["attempts"] = new_attempts
+    reveal["feedback"] = grade.get("feedback", "")
+    reveal["solution"] = grade.get("solution", "") or verdict.get("explanation", "")
+
+    if grade["pass"]:
+        reveal["resolved"] = True
+        reveal["forced"] = False
+        reveal["hints"] = []
+        # Reward: the future re-practice time this resolved mistake saves.
+        from anki.ankidote import problems as ankidote_problems
+
+        item = ankidote_problems.get(verdict["problemId"])
+        difficulty = float(getattr(item, "b", 0.0)) if item is not None else 0.0
+        reveal["savedSeconds"] = ankidote_loop.time_saved_seconds(
+            state, verdict["problemId"], difficulty
+        )
+        record = ankidote_loop.build_mistake_record(verdict, why, grade, new_attempts)
+        ankidote_loop.record_mistake(state, record)
+        _ankidote_state_write(state)
+    elif new_attempts >= _ANKIDOTE_MAX_EXPLANATION_ATTEMPTS:
+        # Two incorrect explanations: unlock the next problem but impose the
+        # unskippable penalty timer and reveal the correct reasoning.
+        reveal["resolved"] = True
+        reveal["forced"] = True
+        reveal["hints"] = grade.get("hints", [])
+        reveal["penaltySeconds"] = _ANKIDOTE_PENALTY_SECONDS
+        reveal["penaltyUntilMs"] = int(time.time() * 1000) + _ANKIDOTE_PENALTY_SECONDS * 1000
+        record = ankidote_loop.build_mistake_record(verdict, why, grade, new_attempts)
+        ankidote_loop.record_mistake(state, record)
+        _ankidote_state_write(state)
+    else:
+        reveal["resolved"] = False
+        reveal["forced"] = False
+        reveal["hints"] = grade.get("hints", [])
+    aqt.mw._ankidote_reveal = reveal
+    return _ankidote_json_response(_ankidote_loop_state_payload())
+
+
+def ankidote_loop_continue() -> bytes:
+    """Leave the reveal step (once resolved + any penalty elapsed) and advance."""
+    reveal = getattr(aqt.mw, "_ankidote_reveal", None)
+    loop = getattr(aqt.mw, "_ankidote_loop", None)
+    if reveal is not None:
+        if not reveal.get("resolved", True):
+            # Still gated on the explanation — bounce back to the reveal step.
+            return _ankidote_json_response(_ankidote_loop_state_payload())
+        until = reveal.get("penaltyUntilMs")
+        if until and int(time.time() * 1000) < int(until):
+            # Penalty timer still running — unskippable, even via the API.
+            return _ankidote_json_response(_ankidote_loop_state_payload())
+    aqt.mw._ankidote_reveal = None
+    if loop is None:
+        return _ankidote_json_response(_ankidote_loop_state_payload())
+    return _ankidote_advance_after_answer(loop)
+
+
+def ankidote_note() -> bytes:
+    """Save a note-to-self for a repeatedly-missed problem."""
+    from anki.ankidote import loop as ankidote_loop
+
+    body = json.loads(request.data or b"{}")
+    key = str(body.get("problemId", ""))
+    text = str(body.get("text", "")).strip()
+    if key and text:
+        state = _ankidote_state_read()
+        ankidote_loop.save_note(state, key, text)
+        _ankidote_state_write(state)
+    reveal = getattr(aqt.mw, "_ankidote_reveal", None)
+    if isinstance(reveal, dict):
+        reveal["noteSaved"] = True
+        aqt.mw._ankidote_reveal = reveal
+    return _ankidote_json_response(_ankidote_loop_state_payload())
 
 
 def ankidote_loop_next() -> bytes:
     # Clear the finished session so a fresh topic is selected next.
     aqt.mw._ankidote_loop = None
+    aqt.mw._ankidote_reveal = None
     return _ankidote_json_response(_ankidote_loop_state_payload())
 
 
@@ -1105,6 +1549,140 @@ def ankidote_sort_decks() -> bytes:
     counts = decksort.sort_into_topics(aqt.mw.col)
     aqt.mw.taskman.run_on_main(aqt.mw.reset)
     return _ankidote_json_response({"counts": counts, "total": sum(counts.values())})
+
+
+def ankidote_checkin_start() -> bytes:
+    """Begin a stale-targeted mini-CAT to re-anchor the score range (PRD §6.5)."""
+    from anki.ankidote import scores
+    from anki.ankidote.runner import DiagnosticRunner
+
+    if not _ankidote_logged_in():
+        return _ankidote_json_response({"phase": "login_required"})
+
+    state = _ankidote_state_read()
+    diagnostic = state.get("diagnostic") or {}
+    stale = scores.stalest_topics(diagnostic, k=3)
+    # Warm-start each targeted topic from its current estimate.
+    theta0 = {
+        e.get("topic"): float(e.get("theta", 0.0))
+        for e in diagnostic.get("topicScores", []) or []
+        if e.get("topic") in set(stale)
+    }
+    runner = DiagnosticRunner(
+        max_questions=10,
+        topics=stale or None,
+        theta0=theta0,
+    )
+    aqt.mw._ankidote_checkin = runner
+    # Snapshot the affected topics' ranges for the before/after animation.
+    before = {
+        e.get("topic"): e.get("score")
+        for e in diagnostic.get("topicScores", []) or []
+        if not stale or e.get("topic") in set(stale)
+    }
+    payload = runner.state()
+    payload["before"] = before
+    return _ankidote_json_response(payload)
+
+
+def ankidote_checkin_answer() -> bytes:
+    body = json.loads(request.data or b"{}")
+    runner = getattr(aqt.mw, "_ankidote_checkin", None)
+    if runner is None:
+        raise RuntimeError("check-in not started")
+    runner.answer(str(body["itemId"]), int(body["chosenChoice"]))
+    payload = runner.state()
+    if runner.finished:
+        state = _ankidote_state_read()
+        after = _ankidote_apply_checkin(state, runner)
+        _ankidote_state_write(state)
+        aqt.mw._ankidote_checkin = None
+        payload["after"] = after
+        try:
+            from aqt.ankidote import schedsync
+
+            schedsync.push_scheduling(aqt.mw, topics=[s["topic"] for s in runner.topic_states()])
+        except Exception as exc:
+            print("ankidote: scheduling push skipped:", exc)
+    return _ankidote_json_response(payload)
+
+
+def _ankidote_apply_checkin(state: dict, runner) -> dict:
+    """Fold a finished check-in back into the diagnostic; stamp cadence."""
+    from anki.ankidote import loop as ankidote_loop
+
+    after: dict = {}
+    for result in runner.topic_states():
+        ankidote_loop.apply_result(state, result)
+        _ankidote_stamp_measured(state, result["topic"])
+        after[result["topic"]] = result["score"]
+    checkins = state.get("checkins")
+    if not isinstance(checkins, dict):
+        checkins = {"everyDays": 7, "graceDays": 3}
+        state["checkins"] = checkins
+    checkins["lastAt"] = int(time.time() * 1000)
+    return after
+
+
+def ankidote_organize_start() -> bytes:
+    """Begin (or resume) the mandatory concept lesson for a gated topic.
+
+    Presents the authored key ideas + procedure and asks for a summary. The
+    session lives in memory on ``aqt.mw`` so a refresh lands back on the same
+    step; completing it stamps ``state["organized"]`` so it never gates again.
+    """
+    from anki.ankidote import lessons, organize
+
+    if not _ankidote_logged_in():
+        return _ankidote_json_response({"phase": "login_required"})
+
+    body = json.loads(request.data or b"{}")
+    topic = str(body.get("topic") or "")
+    if not lessons.has_lesson(topic):
+        return _ankidote_json_response(_ankidote_loop_state_payload())
+
+    session = getattr(aqt.mw, "_ankidote_organize", None)
+    if not isinstance(session, dict) or session.get("topic") != topic:
+        session = organize.new_session(topic)
+        aqt.mw._ankidote_organize = session
+    return _ankidote_json_response(organize.payload(session))
+
+
+def ankidote_organize_ready() -> bytes:
+    """Learner finished reading: blank the key ideas + steps into recall boxes."""
+    from anki.ankidote import organize
+
+    session = getattr(aqt.mw, "_ankidote_organize", None)
+    if not isinstance(session, dict):
+        return _ankidote_json_response(_ankidote_loop_state_payload())
+    organize.begin_recall(session)
+    return _ankidote_json_response(organize.payload(session))
+
+
+def ankidote_organize_check() -> bytes:
+    """Grade one recall box; green it, hint, or reveal after the try limit."""
+    from anki.ankidote import ai, organize
+
+    session = getattr(aqt.mw, "_ankidote_organize", None)
+    if not isinstance(session, dict):
+        return _ankidote_json_response(_ankidote_loop_state_payload())
+
+    body = json.loads(request.data or b"{}")
+    blank_id = str(body.get("id") or "")
+    text = str(body.get("text") or "")
+    blank = organize.get_blank(session, blank_id)
+    if blank is None:
+        return _ankidote_json_response(organize.payload(session))
+
+    state = _ankidote_state_read()
+    grade = ai.grade_recall(state, blank["label"], blank["target"], text)
+    organize.check_blank(session, blank_id, bool(grade["pass"]), grade.get("hint", ""))
+    result = organize.payload(session)
+    if session.get("phase") == "done":
+        organize.mark_organized(state, session["topic"])
+        _ankidote_state_write(state)
+        aqt.mw._ankidote_organize = None
+    return _ankidote_json_response(result)
 
 
 def ankidote_active() -> bytes:
@@ -1214,14 +1792,25 @@ post_handler_list = [
     ankidote_diag_start,
     ankidote_diag_answer,
     ankidote_diag_state,
+    ankidote_auth_state,
+    ankidote_auth_login,
+    ankidote_auth_logout,
     ankidote_state_get,
     ankidote_state_set,
     ankidote_loop_state,
     ankidote_loop_start,
     ankidote_loop_answer,
+    ankidote_loop_mistake,
+    ankidote_loop_continue,
+    ankidote_note,
     ankidote_loop_next,
     ankidote_loop_skip,
     ankidote_loop_another,
+    ankidote_checkin_start,
+    ankidote_checkin_answer,
+    ankidote_organize_start,
+    ankidote_organize_ready,
+    ankidote_organize_check,
     ankidote_sort_decks,
     ankidote_active,
     ankidote_stats,
@@ -1273,6 +1862,14 @@ exposed_backend_list = [
     # AnkidoteService
     "get_practice_questions",
     "next_diagnostic_question",
+    "run_diagnostic",
+    "run_loop_problems",
+    "apply_loop_result",
+    "get_loop_state",
+    "get_ankidote_state",
+    "set_ankidote_state",
+    "get_ankidote_stats",
+    "sort_decks",
 ]
 
 
@@ -1345,17 +1942,38 @@ def _check_dynamic_request_permissions():
         "/_anki/ankidoteDiagStart",
         "/_anki/ankidoteDiagAnswer",
         "/_anki/ankidoteDiagState",
+        "/_anki/ankidoteAuthState",
+        "/_anki/ankidoteAuthLogin",
+        "/_anki/ankidoteAuthLogout",
         "/_anki/ankidoteStateGet",
         "/_anki/ankidoteStateSet",
         "/_anki/ankidoteLoopState",
         "/_anki/ankidoteLoopStart",
         "/_anki/ankidoteLoopAnswer",
+        "/_anki/ankidoteLoopMistake",
+        "/_anki/ankidoteLoopContinue",
+        "/_anki/ankidoteNote",
         "/_anki/ankidoteLoopNext",
         "/_anki/ankidoteLoopSkip",
         "/_anki/ankidoteLoopAnother",
+        "/_anki/ankidoteCheckinStart",
+        "/_anki/ankidoteCheckinAnswer",
+        "/_anki/ankidoteOrganizeStart",
+        "/_anki/ankidoteOrganizeReady",
+        "/_anki/ankidoteOrganizeCheck",
         "/_anki/ankidoteSortDecks",
         "/_anki/ankidoteActive",
         "/_anki/ankidoteStats",
+        # Rust AnkidoteService RPCs the pages now call directly (the engine was
+        # ported from Python into the backend). Same webview, no full API access.
+        "/_anki/runDiagnostic",
+        "/_anki/runLoopProblems",
+        "/_anki/applyLoopResult",
+        "/_anki/getLoopState",
+        "/_anki/getAnkidoteState",
+        "/_anki/setAnkidoteState",
+        "/_anki/getAnkidoteStats",
+        "/_anki/sortDecks",
     ):
         pass
     else:

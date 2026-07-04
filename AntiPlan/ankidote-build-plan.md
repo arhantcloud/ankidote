@@ -26,24 +26,24 @@ Legend: ✅ done · 🔨 this phase · ⏳ later phase · ♻️ reuse existing 
 
 ## Feature map (PRD → plan)
 
-| PRD § | Feature | Reuse / New | Phase |
-| --- | --- | --- | --- |
-| 3.1 | Topic confidence survey | New Svelte + seeds diagnostic θ (engine already accepts `confidence`) | ⏳ P3 |
-| 3.2 | Goal screen | ✅ | done |
-| 3.3 | Commitment list + strictness | ✅ (strictness ⏳) | done/P4 |
-| 4.x | CAT diagnostic | ✅ | done |
-| 4.3 | Score ranges / ANTIcipated | ✅ (dashboard) | done |
-| **5.1** | **Topic selection (lowest-scoring)** | New (`planner.py`) over persisted θ | **🔨 P1** |
-| 5.2 | Subsumption gate (pre-quiz + framework) | New | ⏳ P3 |
-| **5.3** | **Flashcards via SRS** | ♻️ Anki decks + FSRS + reviewer | **🔨 P1** |
-| 5.3 | Points-at-stake queue ordering | New Rust review-order + proto | ⏳ P2 |
-| 5.4 | Mistake review (highlight→correct→explain) | New | ⏳ P4 |
-| **5.5** | **2–3 estimate-adjustment problems / ~30 cards** | New (`problems.py`, temp) + reuse `CatSession` | **🔨 P1** |
-| 5.6 | Bounded interleaving | New (selection policy) | ⏳ P3 |
-| 5.7 | Sub-topic mastery quiz → score update | Partial in P1 (score update), quiz ⏳ P3 | 🔨/⏳ |
-| 6.x | Behavioral enforcement | New | ⏳ P4 |
-| 7.2 | Points-at-stake Rust/proto | New | ⏳ P2 |
-| 7.4 | Item/problem calibration pipeline | Offline, later | ⏳ P5 |
+| PRD §   | Feature                                          | Reuse / New                                                           | Phase     |
+| ------- | ------------------------------------------------ | --------------------------------------------------------------------- | --------- |
+| 3.1     | Topic confidence survey                          | New Svelte + seeds diagnostic θ (engine already accepts `confidence`) | ⏳ P3     |
+| 3.2     | Goal screen                                      | ✅                                                                    | done      |
+| 3.3     | Commitment list + strictness                     | ✅ (strictness ⏳)                                                    | done/P4   |
+| 4.x     | CAT diagnostic                                   | ✅                                                                    | done      |
+| 4.3     | Score ranges / ANTIcipated                       | ✅ (dashboard)                                                        | done      |
+| **5.1** | **Topic selection (lowest-scoring)**             | New (`planner.py`) over persisted θ                                   | **🔨 P1** |
+| 5.2     | Subsumption gate (pre-quiz + framework)          | New                                                                   | ⏳ P3     |
+| **5.3** | **Flashcards via SRS**                           | ♻️ Anki decks + FSRS + reviewer                                        | **🔨 P1** |
+| 5.3     | Points-at-stake queue ordering                   | New Rust review-order + proto                                         | ⏳ P2     |
+| 5.4     | Mistake review (highlight→correct→explain)       | New                                                                   | ⏳ P4     |
+| **5.5** | **2–3 estimate-adjustment problems / ~30 cards** | New (`problems.py`, temp) + reuse `CatSession`                        | **🔨 P1** |
+| 5.6     | Bounded interleaving                             | New (selection policy)                                                | ⏳ P3     |
+| 5.7     | Sub-topic mastery quiz → score update            | Partial in P1 (score update), quiz ⏳ P3                              | 🔨/⏳     |
+| 6.x     | Behavioral enforcement                           | New                                                                   | ⏳ P4     |
+| 7.2     | Points-at-stake Rust/proto                       | New                                                                   | ⏳ P2     |
+| 7.4     | Item/problem calibration pipeline                | Offline, later                                                        | ⏳ P5     |
 
 ---
 
@@ -54,6 +54,7 @@ Goal: `pick lowest-scoring topic → study its Anki cards → 2–3 practice pro
 subsumption, no ranking, no quizzes yet.
 
 ### 1.1 Topic model + selection — `pylib/anki/ankidote/topics.py`
+
 - Canonical GMAT topic tree (section → topics), section weights.
 - Derive the source of truth for topics from the item bank today; taxonomy is
   data so it can grow.
@@ -63,6 +64,7 @@ subsumption, no ranking, no quizzes yet.
   first untested topic when no θ exists.
 
 ### 1.2 Per-topic exam-problem storage — `pylib/anki/ankidote/problems.py`
+
 - **Separate store from the diagnostic item bank** (PRD calls problems distinct
   from cards; also distinct from diagnostic items).
 - For now **generate temp problems per topic** deterministically (seeded), each
@@ -72,6 +74,7 @@ subsumption, no ranking, no quizzes yet.
 - Stored per-topic; content kept out of the diagnostic bank.
 
 ### 1.3 Cards from Anki decks ♻️ — reuse decks + reviewer
+
 - Map each topic → an Anki deck (`Ankidote::<Section>::<Topic>`), created on
   demand (`col.decks.id(name, create=True)`); stored in config
   (`ankidote.deckMap`). Real user cards live in these decks.
@@ -82,6 +85,7 @@ subsumption, no ranking, no quizzes yet.
   student study then continue to problems.
 
 ### 1.4 Loop engine (Python) — `pylib/anki/ankidote/loop.py`
+
 - Holds the outer-loop state for a session: current topic, phase
   (`cards` → `problems` → `update`), a `CatSession` seeded from the topic's
   stored θ, and the running score.
@@ -90,6 +94,7 @@ subsumption, no ranking, no quizzes yet.
   persisted config so the dashboard + selection see it.
 
 ### 1.5 Endpoints (`qt/aqt/mediasrv.py`) + client
+
 - `ankidoteLoopState` → next topic, phase, deck name, and score.
 - `ankidoteLoopProblems` → the 2–3 problems for the current topic (temp).
 - `ankidoteLoopAnswer` → grade one, return updated θ/score/phase.
@@ -99,6 +104,7 @@ subsumption, no ranking, no quizzes yet.
   `main.py::_ankidote_link_handler` to launch the topic's deck.
 
 ### 1.6 Loop UI — `ts/routes/ankidote/loop/+page.svelte`
+
 - Shows current topic + its score range, section weight, and why it was picked.
 - Phase `cards`: "Study N flashcards in <deck>" → bridge command launches the
   deck; "I've finished my cards → problems".
@@ -107,6 +113,7 @@ subsumption, no ranking, no quizzes yet.
 - Entry from the dashboard ("Start studying") and after locking in the plan.
 
 ### Phase 1 acceptance
+
 - From a completed diagnostic, the loop picks a sensible weak topic, opens a
   real Anki deck for cards, serves temp problems, and the per-topic + overall
   score range visibly updates and persists/syncs.
@@ -114,20 +121,24 @@ subsumption, no ranking, no quizzes yet.
 ---
 
 ## Phase 2 — points-at-stake + card-count integration ⏳
+
 - Proto `PointsAtStakeOrder` + Rust review-order variant (PRD §7.2); Python
   computes `topic_weight × student_weakness` and calls the new RPC.
 - Reviewer instrumentation to auto-return to the loop after ~30 cards.
 
 ## Phase 3 — subsumption, survey, interleaving, quizzes ⏳
+
 - Confidence survey `/ankidote/survey` (seeds θ).
 - Subsumption gate: pre-cards quiz + framework page when topic < floor X.
 - Bounded sub-topic interleaving; sub-topic mastery quiz → score update.
 
 ## Phase 4 — friction features ⏳
+
 - Mistake review (highlight → correct → explain), mistake taxonomy.
 - Answer-choice ranking UI (diagnostic + drills).
 - Self-evaluation, organize, note-to-self, fact interrogation, strictness,
   scheduling enforcement.
 
 ## Phase 5 — calibration ⏳
+
 - Offline IRT calibration pipeline for items + problems (`py-irt`/`girth`).

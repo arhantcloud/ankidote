@@ -1,369 +1,2869 @@
-[
+{
+  "source": "gmat_scraper/calibration (py-irt calibrated, mock rankings)",
+  "scale": {
+    "low": 205,
+    "high": 805,
+    "per_theta": 100.0,
+    "mid": 505.0
+  },
+  "items": [
     {
-        "id": 1,
-        "section": "quant",
-        "topic": "Arithmetic",
-        "subtopic": "Percents",
-        "stem": "What is 15% of 240?",
-        "choices": ["24", "30", "36", "40", "48"],
-        "correct": 2,
-        "explanation": "15% of 240 = 0.15 × 240 = 36.",
-        "a": 1.0,
-        "b": -1.6,
-        "c": 0.2
+      "id": "algebra_1",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "A poultry farm has only chickens and pigs. When the manager of the poultry counted the heads of the stock in the farm, the number totaled up to 200. However, when the number of legs was counted, the number totaled up to 540. How many more chickens were there in the farm? Note: In the farm, each pig had 4 legs and each chicken had 2 legs.",
+      "choices": [
+        "70",
+        "120",
+        "60",
+        "130",
+        "80"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 0.930359,
+      "b": -0.147968,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        4,
+        1,
+        3
+      ]
     },
     {
-        "id": 2,
-        "section": "quant",
-        "topic": "Arithmetic",
-        "subtopic": "Percents",
-        "stem": "A store discounts a $250 jacket by 20%, then applies an additional 10% off the reduced price. What is the final price?",
-        "choices": ["$170", "$175", "$180", "$190", "$200"],
-        "correct": 2,
-        "explanation": "After 20% off: 250 × 0.8 = 200. After a further 10% off: 200 × 0.9 = 180.",
-        "a": 1.2,
-        "b": -0.3,
-        "c": 0.2
+      "id": "algebra_2",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "Three years back, a father was 24 years older than his son. At present the father is 5 times as old as the son. How old will the son be three years from now?",
+      "choices": [
+        "12 years",
+        "6 years",
+        "3 years",
+        "9 years",
+        "27 years"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.022711,
+      "b": -0.498408,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
     },
     {
-        "id": 3,
-        "section": "quant",
-        "topic": "Arithmetic",
-        "subtopic": "Exponents",
-        "stem": "If 3^(x+2) = 81 · 3^(2x−1), what is the value of x?",
-        "choices": ["−1", "0", "1", "2", "3"],
-        "correct": 0,
-        "explanation": "81 = 3^4, so the right side is 3^(2x+3). Setting exponents equal: x + 2 = 2x + 3, so x = −1.",
-        "a": 1.4,
-        "b": 1.1,
-        "c": 0.2
+      "id": "algebra_3",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "For what values of 'k' will the pair of equations 3x + 4y = 12 and kx + 12y = 30 NOT have a unique solution?",
+      "choices": [
+        "9",
+        "12",
+        "3",
+        "7.5",
+        "2.5"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 0.860878,
+      "b": -0.246009,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        3,
+        1,
+        2,
+        4
+      ]
     },
     {
-        "id": 4,
-        "section": "quant",
-        "topic": "Algebra",
-        "subtopic": "Linear equations",
-        "stem": "If 2x + 5 = 17, what is the value of x?",
-        "choices": ["4", "5", "6", "7", "8"],
-        "correct": 2,
-        "explanation": "2x = 12, so x = 6.",
-        "a": 0.9,
-        "b": -1.8,
-        "c": 0.2
+      "id": "algebra_4",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "The basic one-way air fare for a child aged between 3 and 10 years costs half the regular basic fare for an adult plus a reservation charge that is the same on the child's ticket as on the adult's ticket. One reserved ticket for an adult costs $216 and the cost of a reserved ticket for an adult and a child (aged between 3 and 10) costs $327. What is the basic fare for the journey for an adult?",
+      "choices": [
+        "$111",
+        "$52.5",
+        "$210",
+        "$58.5",
+        "$6"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.014671,
+      "b": 0.045876,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        3,
+        1,
+        4
+      ]
     },
     {
-        "id": 5,
-        "section": "quant",
-        "topic": "Algebra",
-        "subtopic": "Quadratics",
-        "stem": "If x² − 5x + 6 = 0, what is the sum of all possible values of x?",
-        "choices": ["2", "3", "5", "6", "−5"],
-        "correct": 2,
-        "explanation": "The roots of x² − 5x + 6 = 0 are 2 and 3; their sum is 5 (equal to −b/a).",
-        "a": 1.1,
-        "b": 0.0,
-        "c": 0.2
+      "id": "algebra_6",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "A children's gift store sells gift certificates in denominations of $3 and $5. The store sold 'm' $3 certificates and 'n' $5 certificates worth $93 on a Saturday afternoon. If 'm' and 'n' are natural numbers, how many different values can 'm' take?",
+      "choices": [
+        "5",
+        "7",
+        "6",
+        "31",
+        "18"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.412463,
+      "b": 0.451305,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        4,
+        3
+      ]
     },
     {
-        "id": 6,
-        "section": "quant",
-        "topic": "Algebra",
-        "subtopic": "Manipulation",
-        "stem": "If x + 1/x = 4, what is the value of x² + 1/x²?",
-        "choices": ["12", "14", "16", "18", "20"],
-        "correct": 1,
-        "explanation": "Squaring: (x + 1/x)² = x² + 2 + 1/x² = 16, so x² + 1/x² = 14.",
-        "a": 1.5,
-        "b": 1.4,
-        "c": 0.2
+      "id": "algebra_7",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "What is the highest integral value of 'k' for which the quadratic equation x^2 - 6x + k = 0 will have two real and distinct roots?",
+      "choices": [
+        "9",
+        "7",
+        "3",
+        "8",
+        "12"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.087239,
+      "b": 0.032325,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        4,
+        2
+      ]
     },
     {
-        "id": 7,
-        "section": "quant",
-        "topic": "Number Properties",
-        "subtopic": "Primes",
-        "stem": "Which of the following is a prime number?",
-        "choices": ["51", "57", "61", "63", "65"],
-        "correct": 2,
-        "explanation": "51 = 3 × 17, 57 = 3 × 19, 63 = 7 × 9, 65 = 5 × 13. Only 61 is prime.",
-        "a": 0.9,
-        "b": -1.0,
-        "c": 0.2
+      "id": "algebra_8",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "If one of the roots of the quadratic equation x^2 + mx + 24 = 0 is 1.5, then what is the value of m?",
+      "choices": [
+        "-22.5",
+        "16",
+        "-10.5",
+        "-17.5",
+        "Cannot be determined"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.008633,
+      "b": -0.421917,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
     },
     {
-        "id": 8,
-        "section": "quant",
-        "topic": "Number Properties",
-        "subtopic": "Units digits",
-        "stem": "What is the units digit of 7^43?",
-        "choices": ["0", "1", "3", "7", "9"],
-        "correct": 2,
-        "explanation": "Units digits of powers of 7 cycle 7, 9, 3, 1. Since 43 mod 4 = 3, the units digit is the third in the cycle: 3.",
-        "a": 1.3,
-        "b": 0.5,
-        "c": 0.2
+      "id": "algebra_9",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "For what value of 'm' will the quadratic equation x^2 - mx + 4 = 0 have real and equal roots?",
+      "choices": [
+        "16",
+        "8",
+        "2",
+        "-4",
+        "Choice (B) and (C)"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.897773,
+      "b": -0.242769,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
     },
     {
-        "id": 9,
-        "section": "quant",
-        "topic": "Number Properties",
-        "subtopic": "Divisors",
-        "stem": "How many positive divisors does 360 have?",
-        "choices": ["20", "22", "24", "26", "28"],
-        "correct": 2,
-        "explanation": "360 = 2³ × 3² × 5, so it has (3+1)(2+1)(1+1) = 24 divisors.",
-        "a": 1.4,
-        "b": 1.2,
-        "c": 0.2
+      "id": "algebra_10",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "y = x^2 + bx + 256 cuts the x axis at (h, 0) and (k, 0). If h and k are integers, what is the least value of b?",
+      "choices": [
+        "-32",
+        "-256",
+        "-255",
+        "-257",
+        "0"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.240885,
+      "b": 0.40134,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        1,
+        2,
+        0,
+        4
+      ]
     },
     {
-        "id": 10,
-        "section": "quant",
-        "topic": "Word Problems",
-        "subtopic": "Translation",
-        "stem": "A pen costs $2 and a notebook costs $5. What is the total cost of 3 pens and 2 notebooks?",
-        "choices": ["$14", "$15", "$16", "$17", "$18"],
-        "correct": 2,
-        "explanation": "3 × 2 + 2 × 5 = 6 + 10 = $16.",
-        "a": 0.8,
-        "b": -1.9,
-        "c": 0.2
+      "id": "algebra_11",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "x^2 + bx + 72 = 0 has two distinct integer roots; how many values are possible for 'b'?",
+      "choices": [
+        "3",
+        "12",
+        "6",
+        "24",
+        "8"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.075848,
+      "b": 0.19987,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        4,
+        2,
+        0,
+        3
+      ]
     },
     {
-        "id": 11,
-        "section": "quant",
-        "topic": "Word Problems",
-        "subtopic": "Ages",
-        "stem": "The sum of the ages of a father and his son is 50. In 5 years, the father will be exactly 3 times as old as the son. How old is the son now?",
-        "choices": ["8", "10", "12", "15", "20"],
-        "correct": 1,
-        "explanation": "Let the son be s and father 50 − s. Then 50 − s + 5 = 3(s + 5), so 55 − s = 3s + 15, giving 4s = 40 and s = 10.",
-        "a": 1.2,
-        "b": 0.2,
-        "c": 0.2
+      "id": "algebra_12",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "If x > 0, how many integer values of (x, y) will satisfy the equation 5x + 4|y| = 55?",
+      "choices": [
+        "3",
+        "6",
+        "5",
+        "4",
+        "Infinitely many"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.156638,
+      "b": 0.126552,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
     },
     {
-        "id": 12,
-        "section": "quant",
-        "topic": "Rates & Work",
-        "subtopic": "Combined work",
-        "stem": "Machine A completes a job in 6 hours and machine B completes the same job in 3 hours. Working together at their constant rates, how long will they take to complete the job?",
-        "choices": ["1.5 hours", "2 hours", "2.5 hours", "3 hours", "4.5 hours"],
-        "correct": 1,
-        "explanation": "Combined rate = 1/6 + 1/3 = 1/2 job per hour, so the job takes 2 hours.",
-        "a": 1.2,
-        "b": -0.1,
-        "c": 0.2
+      "id": "algebra_13",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "If p > 0, and x^2 - 11x + p = 0 has integer roots, how many integer values can 'p' take?",
+      "choices": [
+        "6",
+        "11",
+        "5",
+        "10",
+        "Infinitely many"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.113147,
+      "b": 0.192695,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
     },
     {
-        "id": 13,
-        "section": "quant",
-        "topic": "Rates & Work",
-        "subtopic": "Average speed",
-        "stem": "A train travels 120 miles from P to Q at 40 miles per hour and returns along the same route at 60 miles per hour. What is its average speed for the round trip?",
-        "choices": ["45 mph", "48 mph", "50 mph", "52 mph", "55 mph"],
-        "correct": 1,
-        "explanation": "Total distance 240 miles; total time 120/40 + 120/60 = 3 + 2 = 5 hours. Average speed = 240/5 = 48 mph.",
-        "a": 1.4,
-        "b": 0.8,
-        "c": 0.2
+      "id": "algebra_14",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "How many real solutions exist for the equation x^2 – 11|x| - 60 = 0?",
+      "choices": [
+        "3",
+        "2",
+        "1",
+        "4",
+        "None"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.170548,
+      "b": 0.108187,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
     },
     {
-        "id": 14,
-        "section": "quant",
-        "topic": "Statistics",
-        "subtopic": "Averages",
-        "stem": "What is the average (arithmetic mean) of 4, 8, 12, and 16?",
-        "choices": ["8", "9", "10", "11", "12"],
-        "correct": 2,
-        "explanation": "(4 + 8 + 12 + 16) / 4 = 40 / 4 = 10.",
-        "a": 0.9,
-        "b": -1.7,
-        "c": 0.2
+      "id": "algebra_15",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Algebra",
+      "stem": "If the curve described by the equation y = x^2 + bx + c cuts the x-axis at -4 and y axis at 4, at which other point does it cut the x-axis?",
+      "choices": [
+        "-1",
+        "4",
+        "1",
+        "-4",
+        "0"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.102141,
+      "b": 0.096402,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        4,
+        2,
+        3,
+        1
+      ]
     },
     {
-        "id": 15,
-        "section": "quant",
-        "topic": "Statistics",
-        "subtopic": "Standard deviation",
-        "stem": "Set S has a mean of 20 and a standard deviation of 4. If every element of S is multiplied by 3, what is the standard deviation of the resulting set?",
-        "choices": ["4", "7", "12", "20", "36"],
-        "correct": 2,
-        "explanation": "Multiplying every element by a constant k multiplies the standard deviation by |k|: 3 × 4 = 12.",
-        "a": 1.3,
-        "b": 1.0,
-        "c": 0.2
+      "id": "number-properties_1",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "If both 11^2 and 3^3 are factors of the number a * 4^3 * 6^2 * 13^11 , then what is the smallest possible value of 'a'?",
+      "choices": [
+        "121",
+        "3267",
+        "363",
+        "33",
+        "None of the above"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.113684,
+      "b": 0.115035,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
     },
     {
-        "id": 16,
-        "section": "quant",
-        "topic": "Combinatorics & Probability",
-        "subtopic": "Permutations",
-        "stem": "In how many different ways can 3 people be selected from a group of 5 and arranged in a row?",
-        "choices": ["10", "20", "60", "120", "125"],
-        "correct": 2,
-        "explanation": "This is a permutation: 5 × 4 × 3 = 60.",
-        "a": 1.1,
-        "b": 0.4,
-        "c": 0.2
+      "id": "number-properties_2",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "How many different positive integers exist between 10^6 and 10^7 , the sum of whose digits is equal to 2?",
+      "choices": [
+        "6",
+        "7",
+        "5",
+        "8",
+        "18"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.161459,
+      "b": 0.189311,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        3,
+        2,
+        4
+      ]
     },
     {
-        "id": 17,
-        "section": "quant",
-        "topic": "Combinatorics & Probability",
-        "subtopic": "Probability",
-        "stem": "A fair coin is flipped 4 times. What is the probability of getting exactly 2 heads?",
-        "choices": ["1/4", "3/8", "1/2", "5/8", "1/16"],
-        "correct": 1,
-        "explanation": "There are C(4,2) = 6 favorable outcomes out of 2⁴ = 16, so the probability is 6/16 = 3/8.",
-        "a": 1.3,
-        "b": 0.9,
-        "c": 0.2
+      "id": "number-properties_3",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "A number when divided by a divisor leaves a remainder of 24. When twice the original number is divided by the same divisor, the remainder is 11. What is the value of the divisor?",
+      "choices": [
+        "13",
+        "59",
+        "35",
+        "37",
+        "12"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.290452,
+      "b": 0.435655,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        2,
+        1,
+        0,
+        4
+      ]
     },
     {
-        "id": 18,
-        "section": "verbal",
-        "topic": "Critical Reasoning",
-        "subtopic": "Inference",
-        "stem": "All employees who completed the training program passed the safety exam. Maria is an employee who completed the training program. Which of the following conclusions follows logically?",
-        "choices": [
-            "Maria passed the safety exam.",
-            "Maria will be promoted.",
-            "Employees who did not complete the training failed the exam.",
-            "Maria completed the exam quickly.",
-            "All employees completed the training program."
-        ],
-        "correct": 0,
-        "explanation": "Everyone who completed training passed; Maria completed training; therefore Maria passed. The other options introduce claims not supported by the premises.",
-        "a": 1.0,
-        "b": -1.2,
-        "c": 0.2
+      "id": "number-properties_4",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "How many keystrokes are needed to type numbers from 1 to 1000?",
+      "choices": [
+        "3001",
+        "2893",
+        "2704",
+        "2890",
+        "None of these"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.049919,
+      "b": -0.512016,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
     },
     {
-        "id": 19,
-        "section": "verbal",
-        "topic": "Critical Reasoning",
-        "subtopic": "Weaken",
-        "stem": "City officials claim the new bike lanes reduced traffic accidents, because accidents fell 20% in the year after the lanes were installed. Which of the following, if true, most weakens the officials' argument?",
-        "choices": [
-            "Bike ridership increased after the lanes were installed.",
-            "A city-wide speed-limit reduction took effect the same month the lanes were installed.",
-            "Other cities saw accidents fall after adding bike lanes.",
-            "The lanes were installed on the city's busiest streets.",
-            "Accident rates had been rising for five years before the installation."
-        ],
-        "correct": 1,
-        "explanation": "An alternative cause (the speed-limit reduction) undermines the claim that the bike lanes caused the drop in accidents.",
-        "a": 1.2,
-        "b": 0.3,
-        "c": 0.2
+      "id": "number-properties_5",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "When 242 is divided by a certain divisor the remainder obtained is 8. When 698 is divided by the same divisor the remainder obtained is 9. However, when the sum of the two numbers 242 and 698 is divided by the divisor, the remainder obtained is 4. What is the value of the divisor?",
+      "choices": [
+        "11",
+        "17",
+        "13",
+        "23",
+        "None of these"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.199256,
+      "b": 0.03537,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
     },
     {
-        "id": 20,
-        "section": "verbal",
-        "topic": "Critical Reasoning",
-        "subtopic": "Assumption",
-        "stem": "Company X's profits will rise this year because it has cut manufacturing costs by 15%. The argument depends on which of the following assumptions?",
-        "choices": [
-            "Competitors have not cut their own manufacturing costs.",
-            "Manufacturing costs are the company's largest expense.",
-            "Revenue will not fall by enough to offset the cost savings.",
-            "The company will cut costs further next year.",
-            "Profits also rose last year."
-        ],
-        "correct": 2,
-        "explanation": "Profit = revenue − costs. Lower costs only guarantee higher profits if revenue does not decline enough to cancel the savings.",
-        "a": 1.4,
-        "b": 1.0,
-        "c": 0.2
+      "id": "number-properties_6",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "How many integral divisors does the number 120 have?",
+      "choices": [
+        "14",
+        "16",
+        "12",
+        "20",
+        "None of these"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.066369,
+      "b": 0.287613,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
     },
     {
-        "id": 21,
-        "section": "verbal",
-        "topic": "Reading Comprehension",
-        "subtopic": "Inference",
-        "stem": "A passage states that early telescopes distorted colors because their lenses refracted different wavelengths of light unequally, and that mirrors, which reflect all wavelengths alike, solved this problem. It can be inferred that reflecting telescopes were adopted primarily to:",
-        "choices": [
-            "magnify distant objects more powerfully",
-            "eliminate the color distortion caused by unequal refraction",
-            "reduce the cost of grinding lenses",
-            "observe fainter stars than lenses allowed",
-            "replace fragile glass components"
-        ],
-        "correct": 1,
-        "explanation": "The passage links mirrors directly to solving the color-distortion problem of refracting lenses; the other benefits are never mentioned.",
-        "a": 1.1,
-        "b": 0.1,
-        "c": 0.2
+      "id": "number-properties_7",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "How many trailing zeros will be there after the rightmost non-zero digit in the value of 25!?",
+      "choices": [
+        "25",
+        "8",
+        "6",
+        "5",
+        "2"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.197475,
+      "b": 0.477777,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        1,
+        4,
+        0
+      ]
     },
     {
-        "id": 22,
-        "section": "verbal",
-        "topic": "Reading Comprehension",
-        "subtopic": "Primary purpose",
-        "stem": "A passage first describes a widely accepted theory of honeybee navigation, then presents experimental results inconsistent with that theory, and finally proposes a modified account that accommodates the new results. The primary purpose of the passage is to:",
-        "choices": [
-            "defend a traditional theory against recent criticism",
-            "describe experiments that settle a scientific dispute conclusively",
-            "revise an established theory in light of conflicting evidence",
-            "argue that honeybee navigation cannot be studied experimentally",
-            "compare two equally supported theories of navigation"
-        ],
-        "correct": 2,
-        "explanation": "The structure — accepted theory, conflicting evidence, modified account — is a revision of an established theory, not a defense, a conclusive settlement, or a neutral comparison.",
-        "a": 1.3,
-        "b": 0.7,
-        "c": 0.2
+      "id": "number-properties_8",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Number Properties",
+      "stem": "What is the remainder when 1044 * 1047 * 1050 * 1053 is divided by 33?",
+      "choices": [
+        "3",
+        "27",
+        "30",
+        "21",
+        "18"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.106347,
+      "b": 0.044582,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        1,
+        3,
+        4,
+        0
+      ]
     },
     {
-        "id": 23,
-        "section": "data_insights",
-        "topic": "Data Sufficiency",
-        "subtopic": "Number properties",
-        "stem": "Is the integer n even?\n\n(1) n + 4 is even.\n(2) 3n is even.",
-        "choices": [
-            "Statement (1) ALONE is sufficient, but statement (2) alone is not sufficient.",
-            "Statement (2) ALONE is sufficient, but statement (1) alone is not sufficient.",
-            "BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient.",
-            "EACH statement ALONE is sufficient.",
-            "Statements (1) and (2) TOGETHER are NOT sufficient."
-        ],
-        "correct": 3,
-        "explanation": "(1) If n + 4 is even, n is even — sufficient. (2) If 3n is even, then since 3 is odd, n must be even — sufficient. Each alone suffices.",
-        "a": 1.2,
-        "b": 0.4,
-        "c": 0.2
+      "id": "algebra_16",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Inequalities",
+      "stem": "If \"x\" is an integer, which of the following inequality(ies) will have a finite range of values of \"x\" satisfying it(them)?",
+      "choices": [
+        "x^2 + 5x + 6 > 0",
+        "|x + 2| > 4",
+        "9x - 7 < 3x + 14",
+        "x^2 - 4x + 3 < 0",
+        "(B) and (D)"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.033718,
+      "b": 0.30306,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
     },
     {
-        "id": 24,
-        "section": "data_insights",
-        "topic": "Data Sufficiency",
-        "subtopic": "Equations",
-        "stem": "What is the value of x?\n\n(1) x² = 9.\n(2) x < 0.",
-        "choices": [
-            "Statement (1) ALONE is sufficient, but statement (2) alone is not sufficient.",
-            "Statement (2) ALONE is sufficient, but statement (1) alone is not sufficient.",
-            "BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient.",
-            "EACH statement ALONE is sufficient.",
-            "Statements (1) and (2) TOGETHER are NOT sufficient."
-        ],
-        "correct": 2,
-        "explanation": "(1) gives x = 3 or x = −3 — not sufficient. (2) alone allows any negative number. Together they pin down x = −3.",
-        "a": 1.1,
-        "b": 0.0,
-        "c": 0.2
+      "id": "algebra_17",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Inequalities",
+      "stem": "What values of 'x' will be the solution to the inequality 15x - \\\\frac{2}{x}) > 1?",
+      "choices": [
+        "x > 0.4",
+        "x < \\\\frac{1}{3})",
+        "- \\\\frac{1}{3}) < x < 0.4, x > \\\\frac{15}{2})",
+        "-\\\\frac{1}{3}) < x < 0, x > \\\\frac{2}{5})",
+        "x < -\\\\frac{1}{3}) or x > \\\\frac{2}{5})"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.926664,
+      "b": 0.06685,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        1,
+        2,
+        4,
+        0
+      ]
     },
     {
-        "id": 25,
-        "section": "data_insights",
-        "topic": "Graphics Interpretation",
-        "subtopic": "Pie charts",
-        "stem": "A pie chart of a monthly budget shows rent 40%, food 25%, transport 15%, and savings making up the remainder. If the total budget is $2,400, how much goes to savings?",
-        "choices": ["$360", "$420", "$480", "$500", "$600"],
-        "correct": 2,
-        "explanation": "Savings = 100% − 40% − 25% − 15% = 20%; 0.20 × 2,400 = $480.",
-        "a": 1.0,
-        "b": -0.6,
-        "c": 0.2
+      "id": "algebra_18",
+      "section": "quant",
+      "topic": "Algebra",
+      "subtopic": "Inequalities",
+      "stem": "What is the smallest integer that satisfies the inequality \\\\frac{x - 3}{x^{2} - 8x - 20}) > 0?",
+      "choices": [
+        "-2",
+        "10",
+        "3",
+        "-1",
+        "0"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.021407,
+      "b": 0.209634,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        4,
+        2,
+        1
+      ]
+    },
+    {
+      "id": "number-properties_16",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Set Theory",
+      "stem": "In a class of 120 students numbered 1 to 120, all even numbered students opt for Physics, those whose numbers are divisible by 5 opt for Chemistry and those whose numbers are divisible by 7 opt for Math. How many opt for none of the three subjects?",
+      "choices": [
+        "19",
+        "41",
+        "21",
+        "57",
+        "26"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.056068,
+      "b": -0.220943,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        4,
+        3,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "number-properties_17",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Set Theory",
+      "stem": "Of the 200 candidates who were interviewed for a position at a call center, 100 had a two-wheeler, 70 had a credit card and 140 had a mobile phone. 40 of them had both, a two-wheeler and a credit card, 30 had both, a credit card and a mobile phone and 60 had both, a two wheeler and mobile phone and 10 had all three. How many candidates had none of the three?",
+      "choices": [
+        "0",
+        "20",
+        "10",
+        "18",
+        "25"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.151532,
+      "b": 0.435183,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "number-properties_18",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Set Theory",
+      "stem": "In a class of 40 students, 12 enrolled for both English and German. 22 enrolled for German. If the students of the class enrolled for at least one of the two subjects, then how many students enrolled for only English and not German?",
+      "choices": [
+        "30",
+        "10",
+        "18",
+        "28",
+        "32"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.123518,
+      "b": 0.160963,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        1,
+        3,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "number-properties_19",
+      "section": "quant",
+      "topic": "Number Properties",
+      "subtopic": "Set Theory",
+      "stem": "In a class 40% of the students enrolled for Math and 70% enrolled for Economics. If 15% of the students enrolled for both Math and Economics, what % of the students of the class did not enroll for either of the two subjects?",
+      "choices": [
+        "5%",
+        "15%",
+        "0%",
+        "25%",
+        "None of these"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.210216,
+      "b": 0.484666,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "statistics_1",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "If the mean of numbers 28, x, 42, 78 and 104 is 62, what is the mean of 48, 62, 98, 124 and x ?",
+      "choices": [
+        "78",
+        "58",
+        "390",
+        "310",
+        "66"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.03496,
+      "b": -0.4109,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        4,
+        1,
+        3,
+        2
+      ]
+    },
+    {
+      "id": "statistics_2",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "The arithmetic mean of the 5 consecutive integers starting with 's' is 'a'. What is the arithmetic mean of 9 consecutive integers that start with s + 2 ?",
+      "choices": [
+        "2 + s + a",
+        "22 + a",
+        "2s",
+        "2a + 2",
+        "4 + a"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 0.848625,
+      "b": -0.40017,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        2,
+        3,
+        1
+      ]
+    },
+    {
+      "id": "statistics_3",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "The average weight of a group of 30 friends increases by 1 kg when the weight of their football coach was added. If average weight of the group after including the weight of the football coach is 31 kg, what is the weight of their football coach ?",
+      "choices": [
+        "31 kg",
+        "61 kg",
+        "60 kg",
+        "62 kg",
+        "91 kg"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 0.92277,
+      "b": -0.643862,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        2,
+        3,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "statistics_4",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "The average wages of a worker during a fortnight comprising 15 consecutive working days was $90 per day. During the first 7 days, his average wages was $87/day and the average wages during the last 7 days was $92 /day. What was his wage on the 8^th day ?",
+      "choices": [
+        "$83",
+        "$92",
+        "$90",
+        "$97",
+        "$104"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.356587,
+      "b": 0.29787,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        1,
+        2,
+        4,
+        0
+      ]
+    },
+    {
+      "id": "statistics_5",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "The average of 5 numbers is 6. The average of 3 of them is 8. What is the average of the remaining two numbers ?",
+      "choices": [
+        "4",
+        "5",
+        "3",
+        "3.5",
+        "0.5"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.032057,
+      "b": 0.144402,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "statistics_6",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "The average age of a group of 10 students was 20. The average age increased by 2 years when two new students joined the group. What is the average age of the two new students who joined the group ?",
+      "choices": [
+        "22 years",
+        "30 years",
+        "44 years",
+        "32 years",
+        "None of these"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.897258,
+      "b": -0.56608,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "statistics_8",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "Positive integers from 1 to 45, inclusive are placed in 5 groups of 9 each. What is the highest possible average of the medians of these 5 groups ?",
+      "choices": [
+        "25",
+        "31",
+        "15",
+        "26",
+        "23"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.287704,
+      "b": 0.286797,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        3,
+        0,
+        4,
+        2
+      ]
+    },
+    {
+      "id": "statistics_9",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "If the average of 5 positive integers is 40 and the difference between the largest and the smallest of these 5 numbers is 10, what is the maximum value possible for the largest of these 5 integers ?",
+      "choices": [
+        "50",
+        "52",
+        "49",
+        "48",
+        "44"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.062407,
+      "b": 0.137704,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        2,
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "statistics_10",
+      "section": "quant",
+      "topic": "Statistics",
+      "subtopic": "Statistics & Averages",
+      "stem": "An analysis of the monthly incentives received by 5 salesmen : The mean and median of the incentives is $7000. The only mode among the observations is $12,000. Incentives paid to each salesman were in full thousands. What is the difference between the highest and the lowest incentive received by the 5 salesmen in the month ?",
+      "choices": [
+        "$4000",
+        "$13,000",
+        "$9000",
+        "$5000",
+        "$11,000"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 0.993421,
+      "b": 0.167109,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "arithmetic_1",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Three friends Alice, Bond, and Charlie divide $1105 amongs them in such a way that if $10, $20, and $15 are removed from the sums that Alice, Bond, and Charlie received respectively, then the share of the sums that they got will be in the ratio of 11 : 18 : 24. How much did Charlie receive?",
+      "choices": [
+        "$495",
+        "$510",
+        "$480",
+        "$375",
+        "$360"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.110853,
+      "b": 0.176591,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_2",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Mary and Mike enter into a partnership by investing $700 and $300 respectively. At the end of one year, they divided their profits such that a third of the profit is divided equally for the efforts they have put into the business and the remaining amount of profit is divided in the ratio of the investments they made in the business. If Mary received $800 more than Mike did, what was the profit made by their business in that year?",
+      "choices": [
+        "$2000",
+        "$6000",
+        "$4000",
+        "$1333",
+        "$3000"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.009957,
+      "b": -0.552979,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        2,
+        3,
+        1
+      ]
+    },
+    {
+      "id": "arithmetic_3",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "A, B, and C each working alone can complete a job in 6, 8, and 12 days respectively. If all three of them work together to complete a job and earn $2340, what will be C's share of the earnings?",
+      "choices": [
+        "$1100",
+        "$520",
+        "$1080",
+        "$1170",
+        "$630"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.114867,
+      "b": 0.574816,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        4,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "arithmetic_4",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "In what ratio should a 20% methyl alcohol solution be mixed with a 50% methyl alcohol solution so that the resultant solution has 40% methyl alcohol in it?",
+      "choices": [
+        "1 : 2",
+        "2 : 1",
+        "1 : 3",
+        "3 : 1",
+        "2 : 3"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.385067,
+      "b": 0.300184,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        2,
+        1,
+        4,
+        3
+      ]
+    },
+    {
+      "id": "arithmetic_5",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "If the price of gasoline increases by 25% and Ron intends to spend only 15% more on gasoline, by how much % should he reduce the quantity of gasoline that he buys?",
+      "choices": [
+        "10%",
+        "12.5%",
+        "8%",
+        "12%",
+        "6.66%"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.037644,
+      "b": -0.312138,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        4,
+        0,
+        3,
+        1
+      ]
+    },
+    {
+      "id": "arithmetic_6",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "The wages earned by Robin is 30% more than that earned by Erica. The wages earned by Charles is 60% more than that earned by Erica. How much % is the wages earned by Charles more than that earned by Robin?",
+      "choices": [
+        "23%",
+        "18.75%",
+        "30%",
+        "50%",
+        "100%"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.595288,
+      "b": 0.651065,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_7",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "In an election contested by two parties, Party D secured 12% of the total votes more than Party R. If party R got 132,000 votes, by how many votes did it lose the election?",
+      "choices": [
+        "240,000",
+        "300,000",
+        "168,000",
+        "36,000",
+        "24,000"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.942175,
+      "b": -0.168548,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "arithmetic_8",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "The difference between the value of a number increased by 12.5% and the value of the original number decreased by 25% is 30. What is the original number?",
+      "choices": [
+        "60",
+        "80",
+        "40",
+        "120",
+        "160"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.313252,
+      "b": 0.241167,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_9",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "What is the % change in the area of a rectangle when its length increases by 10% and its width decreases by 10%?",
+      "choices": [
+        "0%",
+        "20% increase",
+        "20% decrease",
+        "1% decrease",
+        "Insufficient data"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.870545,
+      "b": -0.163238,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_10",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "If the cost price of 20 articles is equal to the selling price of 25 articles, what is the % profit or % loss made by the merchant?",
+      "choices": [
+        "25% loss",
+        "25% profit",
+        "20% loss",
+        "20% profit",
+        "5% profit"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.124465,
+      "b": -0.250992,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_11",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Sam buys 10 apples for $1. At what price should he sell a dozen apples if he wishes to make a profit of 25%?",
+      "choices": [
+        "$0.125",
+        "$1.25",
+        "$0.25",
+        "$1.5",
+        "$1.8"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.995719,
+      "b": -0.002115,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        1,
+        4,
+        2,
+        0
+      ]
+    },
+    {
+      "id": "arithmetic_12",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "By selling an article at 80% of its marked price, a merchant makes a loss of 12%. What % profit will the merchant make if the article is sold at 95% of its marked price?",
+      "choices": [
+        "5% profit",
+        "1% loss",
+        "10% profit",
+        "5.5% profit",
+        "4.5% profit"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.347052,
+      "b": 0.400567,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "arithmetic_13",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "What is the maximum percentage discount that a merchant can offer on her Marked Price so that she ends up selling at no profit or loss, if she had initially marked her goods up by 50%?",
+      "choices": [
+        "50%",
+        "20%",
+        "25%",
+        "16.67%",
+        "33.33%"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.261346,
+      "b": 0.385833,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        2,
+        1,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "arithmetic_14",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "A merchant who marked his goods up by 50% subsequently offered a discount of 20% on the marked price. What is the percentage profit that the merchant made after offering the discount?",
+      "choices": [
+        "30%",
+        "125%",
+        "25%",
+        "20%",
+        "16.66%"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.302203,
+      "b": 0.481162,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "arithmetic_15",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Braun invested a certain sum of money at 8% p.a. simple interest for 'n' years. At the end of 'n' years, Braun got back 4 times his original investment. What is the value of n?",
+      "choices": [
+        "50 years",
+        "25 years",
+        "12 years 6 months",
+        "37 years 6 months",
+        "40 years"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.996772,
+      "b": -0.044378,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "arithmetic_16",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Shawn invested one half of his savings in a bond that paid simple interest for 2 years and received $550 as interest. He invested the remaining in a bond that paid compound interest, interest being compounded annually, for the same 2 years at the same rate of interest and received $605 as interest. What was the value of his total savings before investing in these two bonds?",
+      "choices": [
+        "$5500",
+        "$11000",
+        "$22000",
+        "$2750",
+        "$44000"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.401937,
+      "b": 0.448106,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_17",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Ann invested a certain sum of money in a bank that paid simple interest. The amount grew to $240 at the end of 2 years. She waited for another 3 years and got a final amount of $300. What was the principal amount that she invested at the beginning?",
+      "choices": [
+        "$200",
+        "$150",
+        "$210",
+        "$175",
+        "Insufficient data"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.11553,
+      "b": 0.10804,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "arithmetic_18",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "Peter invested a certain sum of money in a simple interest bond whose value grew to $300 at the end of 3 years and further to $400 at the end of another 5 years. What was the rate of interest in which he invested his sum?",
+      "choices": [
+        "12%",
+        "12.5%",
+        "6.67%",
+        "6.25%",
+        "8.33%"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.664818,
+      "b": 0.807873,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        2,
+        3,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "arithmetic_20",
+      "section": "quant",
+      "topic": "Arithmetic",
+      "subtopic": "Ratios & Percents",
+      "stem": "John is set to receive two equated annual payments of $x each. He will receive the first of his payments two years from today. Which of the following expressions provides the present value of the two payments if John uses 7% p.a. rate to compute present value?",
+      "choices": [
+        "\\\\frac{\\text{(2.07)x}}{\\text{(1.07)}^2})",
+        "\\\\frac{\\text{(2.07)x}}{\\text{(1.07)}^3})",
+        "\\\\frac{(1.07^2 + 1)x}{\\text{(1.07)}^3})",
+        "\\\\frac{(2.07^2 + 1)x}{\\text{(1.07)}^3})",
+        "\\\\frac{\\text{x}}{\\text{1.07}}) + \\\\frac{\\text{x}}{\\text{1.07}^2})"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.153376,
+      "b": 0.052826,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        3,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "rates-work_1",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "A train traveling at 72 kmph crosses a platform in 30 seconds and a man standing on the platform in 18 seconds. What is the length of the platform in meters?",
+      "choices": [
+        "240 meters",
+        "360 meters",
+        "420 meters",
+        "600 meters",
+        "Cannot be determined"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.188343,
+      "b": 0.378446,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "rates-work_2",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "A train traveling at 100 kmph overtakes a motorbike traveling at 64 kmph in 40 seconds. What is the length of the train in meters?",
+      "choices": [
+        "1777 meters",
+        "1822 meters",
+        "400 meters",
+        "1111 meters",
+        "None of these"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 0.968445,
+      "b": -0.419476,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "rates-work_3",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "Jim travels the first 3 hours of his journey at 60 mph speed and the remaining 5 hours at 24 mph speed. What is the average speed of Jim's travel in mph?",
+      "choices": [
+        "42 mph",
+        "36 mph",
+        "37.5 mph",
+        "42.5 mph",
+        "48 mph"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.396495,
+      "b": 0.584207,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        1,
+        0,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "rates-work_4",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "A runs 25% faster than B and is able to allow B a lead of 7 meters to end a race in dead heat. What is the length of the race?",
+      "choices": [
+        "10 meters",
+        "25 meters",
+        "45 meters",
+        "15 meters",
+        "35 meters"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.013383,
+      "b": -0.747682,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "id": "rates-work_5",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "Jane covered a distance of 340 miles between city A and city B taking a total of 5 hours. If part of the distance was covered at 60 miles per hour speed and the balance at 80 miles per hour speed, how many hours did she travel at 60 miles per hour?",
+      "choices": [
+        "2 hours 30 minutes",
+        "3 hours",
+        "2 hours",
+        "1 hour 45 minutes",
+        "None of these"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 0.915173,
+      "b": -0.295235,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "rates-work_6",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "Steve traveled the first 2 hours of his journey at 40 mph and the last 3 hours of his journey at 80 mph. What is his average speed of travel for the entire journey?",
+      "choices": [
+        "60 mph",
+        "56.67 mph",
+        "53.33 mph",
+        "64 mph",
+        "66.67 mph"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.986417,
+      "b": 0.168567,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "rates-work_7",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "Working together, Jose and Jane can complete an assigned task in 20 days. However, if Jose worked alone and completed half the task and then Jane takes over and completes the second half, the task will be completed in 45 days. How long will Jose take to complete the task if he worked alone? Assume that Jane is more efficient than Jose.",
+      "choices": [
+        "25 days",
+        "30 days",
+        "60 days",
+        "65 days",
+        "36 days"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.265592,
+      "b": 0.472016,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        4,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "rates-work_8",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "A can complete a project in 20 days and B can complete the same project in 30 days. If A and B start working on the project together and A quits 10 days before the project is completed, in how many days will the project be completed?",
+      "choices": [
+        "18 days",
+        "27 days",
+        "26.67 days",
+        "16 days",
+        "12 days"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.206482,
+      "b": 0.417611,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        3,
+        4,
+        2,
+        1
+      ]
+    },
+    {
+      "id": "rates-work_9",
+      "section": "quant",
+      "topic": "Rates & Work",
+      "subtopic": "Rates, Work & Speed",
+      "stem": "Ram, who is half as efficient as Krish, will take 24 days to complete a task if he worked alone. If Ram and Krish worked together, how long will they take to complete the task?",
+      "choices": [
+        "16 days",
+        "12 days",
+        "8 days",
+        "6 days",
+        "18 days"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.242551,
+      "b": 0.079003,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        3,
+        1,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_1",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "In how many ways can the letters of the word ABACUS be rearranged such that the vowels always appear together?",
+      "choices": [
+        "3! × 3!",
+        "\\\\frac{4!}{2!})",
+        "\\\\frac{4! × 3!}{2!})",
+        "\\\\frac{3! × 3!}{2!})"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.110271,
+      "b": 0.299445,
+      "c": 0.25,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "combinatorics-probability_2",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "How many different four letter words can be formed (the words need not be meaningful) using the letters of the word MEDITERRANEAN such that the first letter is E and the last letter is R?",
+      "choices": [
+        "59",
+        "\\\\frac{11!}{2! × 2! × 2!})",
+        "56",
+        "23",
+        "\\\\frac{11!}{3!×2!×2!×2!})"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 0.949572,
+      "b": -0.159486,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        2,
+        3,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_3",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "What is the probability that the position in which the consonants appear remain unchanged when the letters of the word \"Math\" are re-arranged? Consider MATH one of the rearrangements.",
+      "choices": [
+        "\\\\frac{1}{4})",
+        "\\\\frac{1}{6})",
+        "\\\\frac{1}{3})",
+        "\\\\frac{1}{24})",
+        "\\\\frac{1}{12})"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.129255,
+      "b": 0.301331,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_4",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "There are 6 boxes numbered 1, 2, ... 6. Each box is to be filled up either with a red or a green ball in such a way that at least 1 box contains a green ball and the boxes containing green balls are consecutively numbered. The total number of ways in which this can be done is:",
+      "choices": [
+        "5",
+        "21",
+        "33",
+        "60",
+        "6"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.198982,
+      "b": 0.167909,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        2,
+        4,
+        0,
+        3
+      ]
+    },
+    {
+      "id": "combinatorics-probability_5",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "A man can hit a target once in 4 shots. If he fires 4 shots in succession, what is the probability that he will hit his target?",
+      "choices": [
+        "1",
+        "\\\\frac{1}{256})",
+        "\\\\frac{81}{256})",
+        "\\\\frac{175}{256})",
+        "\\\\frac{144}{256})"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.328485,
+      "b": 0.363354,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "combinatorics-probability_6",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "In how many ways can 5 letters be posted in 3 post boxes, if any number of letters can be posted in all of the three post boxes?",
+      "choices": [
+        "^5 C_3",
+        "^5 P_3",
+        "5^3",
+        "3^5",
+        "2^5"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.368938,
+      "b": 0.431324,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "combinatorics-probability_7",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "Ten coins are tossed simultaneously. In how many of the outcomes will the third coin turn up a head?",
+      "choices": [
+        "2^10",
+        "2^9",
+        "3 * 2^8",
+        "3 * 2^9",
+        "None of these"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.049359,
+      "b": 0.210784,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_8",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "In how many ways can the letters of the word \"PROBLEM\" be rearranged to make seven letter words such that none of the letters repeat? Consider PROBLEM one of the rearrangements.",
+      "choices": [
+        "7!",
+        "^7 C_7",
+        "7^7",
+        "49",
+        "None of these"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.070314,
+      "b": 0.293904,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_9",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "Bag x contains 3 red and 5 black balls and bag y contains 4 red and 4 black balls. One bag is selected at random and from the selected bag one ball is drawn. What is the probability that the ball drawn is red?",
+      "choices": [
+        "\\\\frac{7}{8})",
+        "\\\\frac{7}{16})",
+        "\\\\frac{3}{16})",
+        "\\\\frac{4}{5})",
+        "\\\\frac{9}{16})"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 0.985092,
+      "b": -0.220556,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        4,
+        3,
+        2
+      ]
+    },
+    {
+      "id": "combinatorics-probability_11",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "There are 4 identical pens and 7 identical books. In how many ways can a person select at least one object from this set?",
+      "choices": [
+        "12",
+        "(2^4 – 1)(2^7 – 1)",
+        "11",
+        "2^11 - 1",
+        "39"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.095531,
+      "b": 0.087647,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        2,
+        1,
+        3
+      ]
+    },
+    {
+      "id": "combinatorics-probability_12",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "How many odd 4-digit positive integers that are multiples of 5 can be formed without using the digit 3?",
+      "choices": [
+        "900",
+        "729",
+        "3240",
+        "648",
+        "1296"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.064473,
+      "b": 0.297981,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        1,
+        0,
+        4,
+        2
+      ]
+    },
+    {
+      "id": "combinatorics-probability_13",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "How many six-digit positive integers comprising only the digits 1 or 2 can be formed such that the number is divisible by 3?",
+      "choices": [
+        "3",
+        "20",
+        "22",
+        "38",
+        "360"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.031705,
+      "b": 0.173725,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        1,
+        3,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "combinatorics-probability_14",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "How many five-digit positive integers comprising only the digits 1, 2, 3, and 4, each appearing at least once, exist such that the number is divisible by 4?",
+      "choices": [
+        "120",
+        "24",
+        "72",
+        "60",
+        "54"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.123473,
+      "b": -0.108056,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        4,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "id": "combinatorics-probability_15",
+      "section": "quant",
+      "topic": "Combinatorics & Probability",
+      "subtopic": "Permutations & Probability",
+      "stem": "A fair coin is tossed 'n' times. If the number of outcomes in which two heads will appear is 28, what is the value of 'n'?",
+      "choices": [
+        "14",
+        "6",
+        "7",
+        "8",
+        "32"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.193245,
+      "b": 0.377854,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        2,
+        1,
+        0,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_1",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Linda : In the 1800s, it was found that one in every six women who gave birth in hospitals died of a fever they had contracted after delivering the child and that the mortality was not as high if they gave birth at home with the help of a mid wife. It was found that the doctors had a poorer sense of hygiene and that their dirty hands and instruments were leading to pathogens entering a woman's bloodstream. Thankfully, hygienic conditions today are much better and women are safer.\nFiona : But doctors today are so overworked that a number of doctors, while aware of the need for better hygiene, barely find the time to wash their hands. The likelihood of infections caused by doctors is probably not any better.\nWhich of the following can be used by Fiona to further establish that Linda need not be correct in her reasoning?",
+      "choices": [
+        "A nationwide survey found that doctors, especially experienced ones, are more prone to the belief that they could not possibly be carrying pathogens.",
+        "It is reported that around 50,000 people die every year in our country from hospital acquired infections.",
+        "Compulsory hand cleansing is strictly adhered to by all doctors and nurses before every major surgical procedure.",
+        "During a study, doctors handling newborn babies self reported a hand cleansing rate of 90℅.",
+        "Nurses are not any better than doctors in adhering to strict cleansing schedules, especially when busy."
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 0.857419,
+      "b": -0.077201,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_2",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "The Americans with disabilities act (ADA) was designed to ensure that there is no discrimination against and unfair termination of differently-abled workers in the workplace. However, after the act was introduced, there has been a marked increase in unemployment among the differently-abled.\nWhich of the following best explains this seeming discrepancy?",
+      "choices": [
+        "A number of differently-abled people chose not to work",
+        "Not willing to deal with the issues of workplace discrimination of the differently-abled, several companies recruited fewer of them in the first place",
+        "Knowing that the act was about to be enforced, companies terminated some of the differently-abled while they had a chance",
+        "There was no act introduced that would guarantee a job for the differently-abled",
+        "The unemployment among the able-bodied has remained consistently high"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.061759,
+      "b": 0.287398,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_3",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "In an effort to curb drug abuse, the government has imposed strict laws to prosecute the dealers. However, such an initiative is unlikely to be effective. Prosecuting dealers will lead to a shortage of drugs. At the same time, because no efforts are being taken to curb demand, drugs will be sold at a premium, attracting more people to the very remunerative job of drug dealing. Therefore, to effectively reduce drug abuse, the government will have to prosecute the drug users and not dealers.\nWhich of the following is the most relevant information in evaluating the credibility of the argument?",
+      "choices": [
+        "Whether efforts have been successfully taken in any other country to regulate drug users.",
+        "Whether the payoff from selling drugs outweighs the severity of the punishment",
+        "Whether drugs will continue to be sold at a premium when there are dealers in the market again",
+        "Whether the majority of the users will be willing to pay a premium to continue to use the drugs",
+        "Whether the government will be able to keep track of new dealers as and when they enter the market"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.27423,
+      "b": 0.44238,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_4",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Alan : In the last 15 years, most of the criminals who were convicted of theft or murder were from the lower income classes and had not completed high school. Therefore, the government has to spend more money on reducing poverty and increase funding to education. Because terrorism is the most severe of all crimes, such measures would bring down overall crime rate and reduce threat from terrorism.\nDylan : A study that was conducted in a country known to produce a number of terrorists showed that on average the terrorists were better educated than the overall population and that they did not necessarily come from lower income classes. This is probably because crimes such as theft are committed for personal gain while terrorism is for political or religious gain.\nWhich of the following best describes Dylan's response to Alan?",
+      "choices": [
+        "Dylan changes the direction of the argument entirely by discussing the scenario in a different country",
+        "Dylan partially agrees with Alan's reasoning but refutes his recommendation to the government",
+        "Dylan converts a causal argument made by Alan into a generalization applicable universally",
+        "Dylan challenges Alan's reasoning by explaining why two situations that Alan perceives as similar are not",
+        "While Alan arrives at a conclusion by drawing an analogy, Dylan arrives at the same conclusion by refuting the analogy"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.078964,
+      "b": 0.307844,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_5",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "During the last 50 years in England, the national football team has had at least 60℅ of its players born during the months January to March. Similarly, in Germany, at least 50℅ of the team has been born during the first three months of the year. In fact, this statistic holds true for most European countries. This shows that in most European countries, parents with kids born early in the year are more likely to encourage a football career.\nWhich of the following best explains why the conclusion need not be the best explanation for the statistic?",
+      "choices": [
+        "Of the remaining members, 60℅ or more tend to be born between the months of April and June.",
+        "Parents of kids born in the second half of the year have displayed a measurable intent to promote scholarly careers",
+        "The age cut-off for kids to try out for a team in most European countries is calculated as on December 31 of any year and older the kid during trials, greater the chances of getting the right opportunities.",
+        "The school year usually begins in April in most European countries and many parents are known to encourage students to work on their academics and not sports during the school year.",
+        "During the last 50 years, on average 30℅ of the kids have been born during the first three months of the year."
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.299666,
+      "b": -0.364322,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_6",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Studies have established that children who watched 2 more hours of TV on an average daily basis during the first 15 years of their life were 50℅ more likely to be arrested for property crimes in the country. Researchers believe that these studies clearly establish that violence in movies and TV contribute to aggressive behavior in real life. On the other hand, there is no clear evidence that the programs that the kids watched on TV were violent in the first place. Even if we were to accept that TV watching contributed to the increased crime rate, it need not have been because of the nature of the programs. Perhaps, children who watched programs such as Adams and Samson , a funny sit-com about two blundering cops began perceiving all cops as incompetent.\nWhat is the role of the sentences in boldface?",
+      "choices": [
+        "The first establishes a theory that the author later clearly refutes while the second presents the author's conclusion",
+        "The first is an interpretation made by researchers that the author contends against and the second provides an alternative explanation for statistical data",
+        "The first is an opinion expressed by someone other than the author and which the author is completely in disagreement with while the second provides the reason for the author's doubt",
+        "The first is a fact supporting the researcher's conclusion while the second is the author's conclusion.",
+        "The first is a clearly proven opinion even if the author disagrees with it while the second is an ambiguous opinion that has no supporting data"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.093034,
+      "b": 0.073885,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_7",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "During medieval times, the administrative system was organized such that jobs were traditionally held within the same family. The eldest son of the village's blacksmith will take up his father's business and become the next blacksmith. The other sons would join the army or serve the king in some fashion while the daughters did what their mother did. Although the world has undergone innumerable changes, the dynastic system has not undergone any change whatsoever. Children who have fathers who played major league baseball are 800 times more likely than other kids to become major league players themselves.\nWhich of the following best refutes the author's reasoning?",
+      "choices": [
+        "In countries with a royal family, the eldest son of the king is destined to be the next king.",
+        "The blacksmith's eldest son in a mediaeval village could not choose any other profession even if he wanted to.",
+        "A major baseball player will have better knowledge and skills and will be able to guide his son better.",
+        "60℅ of the country's doctors have at least one parent who is a doctor.",
+        "It is a proven fact that success in any career is determined more by skill and practice rather than by genetic makeup."
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.193066,
+      "b": 0.179516,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_8",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "A survey conducted recently in the city indicated that most college welfare-aid applicants understate the number of luxury items - such as cars and TVs - that their family owned, in an effort to maximize the amount of aid they can claim from the city. Paradoxically, the same study also found that many applicants claimed that they had running water and a gas connection even when they did not.\nWhich of the following best explains the apparent paradox?",
+      "choices": [
+        "The city does not pay welfare unless the applicants have at least some things working for them",
+        "Claiming that they do not have a car or a TV ensures that the city looks at the applicant more favorably",
+        "While the applicants may be willing to accept that they don't have certain things, they felt embarrassed having to accept that they don't have most things.",
+        "Historically, at least 30℅ of the claims have had people understating what they have while only 22℅ overstated what they had.",
+        "The people who understated what they had were not the same people who overstated what they had"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.002573,
+      "b": 0.14734,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_9",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Terrorist attacks invariably lead to tremendous losses in life, property, and morale of a country. The effects of a terrorist attack are not just immediate and can have long-lasting, trickle-down effects as well. The fear, for example, takes a long time to die down. However, some of these repercussions can be beneficial to the country. Take for instance, the recent terrorist attack on our capital city. In the weeks following the attack, the crime rate in the city came down significantly from what it was just before the attack. This must primarily be due to the increased presence of police resources that were moved to the area and is thus an indirect effect of the attack.\nWhich of the following options gives one more option as to why the crime rate decreased because of the terrorist attacks?",
+      "choices": [
+        "The capital city is under increased monitoring leading to quick detection of crimes - many times while the crime is still underway.",
+        "A number of people are frightened because of the terrorist attacks and have fled the capital city.",
+        "There was a recorded decrease in crime rate right after the terrorist attack in almost all cities of the country.",
+        "Intel reports show that the terrorists who pulled off the attack had been committing various other smaller crimes regularly to distract law enforcement from their true purposes.",
+        "The government had initiated schemes to decrease poverty and provide better livelihood for the people just before the terrorist attack."
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 0.91583,
+      "b": 0.263122,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_10",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "In 2009, there was a sharp increase in the number of people who were reported to have died in the country during the first week of the year, compared with the first week of the previous ten years. There seems to be no reason to explain this disproportionately high number of deaths especially because the reports were widespread in the country and there was no epidemic spreading through the country at that point in time. Moreover, most of the deaths were not among the young and could not even be attributed to binge drinking in celebration of the new year.\nWhich of the following can then explain the discrepancy?",
+      "choices": [
+        "The government announced in 2008 that estate taxes, payable by the heirs on someone's death, would be abolished effective from the new year.",
+        "Astrologists predicted that 2009 was a good year to die in, for salvation of the soul.",
+        "The statistic is an anomaly that has no logical explanation.",
+        "The price of some cancer drugs and chemotherapy increased by 10% in January 2009, making treatment more expensive than before.",
+        "An earthquake in one of the cities during December 2008 made hospital care availability more difficult for regular illnesses."
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.349105,
+      "b": 0.488389,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_11",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "It seems that medical care is constantly improving and is far better today than it was a few years ago. New medicines are being developed, and at a lower cost. Technological advancements are being made and new treatments are devised. However, hospital care has not improved as much as expected. Most hospitals do not have a large enough ER that can handle a sudden influx of patients and the number of people who die in a hospital due to reasons other than what they got admitted for is staggeringly high.\nAll of the following underscore the author's argument EXCEPT",
+      "choices": [
+        "Most hospitals require doctors to do so much paperwork that they spend insufficient time on direct patient care.",
+        "Most hospitals recirculate air and therefore, it is very easy for diseases such as anthrax to spread through the hospital.",
+        "In smaller cities, the ambulance service is on a voluntary basis and the response time for calls is much lower than the national average, leading to a higher loss of life.",
+        "A number of doctors in private hospitals are not held accountable by the administration for the loss of patients.",
+        "Doctors in most private hospitals have performance appraisals based on how much money they have brought in for the hospital rather than based on how effectively they treated patients."
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 0.992682,
+      "b": -0.397305,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_12",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Industrial and automobile pollution have long been thought to contribute to global warming. However, researchers have identified that the carbon dioxide and carbon monoxide released into the atmosphere are not as potent as the methane emitted by cud-chewing animals such as cows when they fart or belch. Therefore, if you drive a hybrid electric car to the grocery, any favor that you would do to the environment would be offset if you end up buying beef.\nWhich of the following best describes the author's reasoning?",
+      "choices": [
+        "The author establishes a point by drawing an analogy",
+        "The author disproves a popular notion by providing evidence that is contrary to it",
+        "The author presents a new theory in response to an existing well-established theory",
+        "The author uses an illustration to support a new school of thought that is contrary to a popular school of thought",
+        "The author makes a comparison between two theories by providing an example"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.129029,
+      "b": 0.38633,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_13",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "There are several scientific studies and research findings that are constantly discussed and publicized in the news media. Some of these are contrary to other research studies that are published. This conflict in information makes people believe that either science is inaccurate or that they can 'choose' which scientific result they want to believe in. However, neither of these beliefs is accurate. Science is not inaccurate or subjective. Most of the time, scientific studies show inconsistent results either because of inaccuracies in methodology adopted or because of misrepresentation of actual results by the news media. For example, a recent study done on just 15 women showed that eating chocolate was not necessarily harmful during pregnancy and the media reported that chocolate was actually beneficial to the foetus.\nWhich of the following best further corroborate the author's argument?",
+      "choices": [
+        "A study result that shows that the effect of automobile pollution on global warming is marginal.",
+        "An unverified study gaining popularity because it seemingly showed that red wine reduces the risk of cancer on a very small control group.",
+        "A new study that further collaborates an earlier finding that the consumption of some types of berries lower the risk of heart failure.",
+        "The news media highlighting the fact that a study had clearly proven that effects of certain drugs on rats need not be the same as on humans.",
+        "People not knowing what to believe because one study shows that a certain disease is caused by genetic factors, while another shows that it also caused by lifestyle factors."
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.177545,
+      "b": -0.170334,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_14",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "John : A study has identified that many soldiers received less-than-honorable discharges from the army due to charges of misconduct that can actually be attributed to conditions such as PTSD and traumatic brain injury. This is a military practice that is unfair and must be avoided. The army must take responsibility for the same and stop discharging their soldiers dishonorably.\nChristy : While it is true that it is unfair to the soldiers to be discharged so from the army, it has also been found that there are no sufficient measures or systems that have been created to identify whether the misconduct was due to trauma or due to other reasons. Moreover, to enforce discipline in the ranks, it is important for the army to follow a uniform rule for all the soldiers.\nWhich of the following statements can Christy further add to her argument?",
+      "choices": [
+        "If there is no proper system, then the army should have developed a proper system by now.",
+        "Complete elimination of dishonorable discharges would make it more difficult for the army to monitor and evaluate the soldiers.",
+        "It is not the army's fault that there has been no system developed to help those with PTSD",
+        "Studies have also found that showing consideration for some soldiers has led to others taking advantage, indirectly promoting misconduct.",
+        "There have been instances when the army has been able to identify the reasons for the misconduct and acted accordingly."
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.267153,
+      "b": 0.364125,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "critical-reasoning_15",
+      "section": "verbal",
+      "topic": "Critical Reasoning",
+      "subtopic": "Critical Reasoning",
+      "stem": "Jess : To be a woman in this century is far better than to be a woman in centuries past. Life expectancy for women has - for the first time - surpassed that for men and while only around 20℅ of college students in the late 1800s were women, today, almost 60℅ of college students are women.\nSam : However, women educated in the top-ranked colleges in the country earn only about 70℅ of what their male counterparts earn. Also, studies show that even today, in a number of industries, women are refused top management positions simply because they are women.\nWhich of the following is Jess most likely to say in response to Sam?",
+      "choices": [
+        "Women today are healthier and live longer than women in the 1800s, who primarily died because of child birth.",
+        "There are more women at the entry-level jobs of most industries than there are men.",
+        "Women today are better able to juggle professional and personal lives and a number of them are proving to be successful single mothers.",
+        "The proportion of women in the judicial and legislative branches of the country is at its highest and the country elected its first woman president recently.",
+        "Women are allowed more freedom today and are not likely to be sacrificed at the altar of marriage or in a witch hunt."
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.228256,
+      "b": 0.435569,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_1",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "In the U.S., German luxury brands have succeeded in getting people who might have once thought the cars were out of their league in buying and leasing some snazzy rides .",
+      "choices": [
+        "have succeeded in getting people who might have once thought the cars were out of their league in buying and leasing some snazzy rides",
+        "have succeeded in getting people who might have once thought the cars were out of their league to buy and lease some snazzy rides",
+        "have succeeded in getting people who once might have thought the cars were out of their league to buy and lease some snazzy rides",
+        "has succeeded in getting people who might have once thought the cars were out of their league to buy and lease some snazzy rides",
+        "has succeeded in getting people who might have once thought the cars were out of their league in buying and leasing some snazzy rides"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.20623,
+      "b": 0.01856,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_2",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Reporting a 90 percent drop in net income during the second quarter, dragged down by restructuring charges and weak sales, the earnings guidance for the year was withdrawn by Best Buy Co.",
+      "choices": [
+        "Reporting a 90 percent drop in net income during the second quarter, dragged down by restructuring charges and weak sales, the earnings guidance for the year was withdrawn by Best Buy Co.",
+        "Best Buy Co. is reporting a 90 percent drop in net income during the second quarter, dragged down by restructuring charges and weak sales; the company also withdrew its earnings guidance for the year.",
+        "Reporting a 90 percent drop in net income during the second quarter and dragged down by restructuring charges and weak sales, Best Buy Co. withdrew the earnings guidance for the year.",
+        "Best Buy Co. has reported a 90 percent drop in net income during the second quarter, dragged down by restructuring charges and weak sales; the company has also withdrawn its earnings guidance for the year.",
+        "Best Buy Co. is reporting a 90 percent drop in net income during the second quarter, dragged down by restructuring charges and weak sales; the company has also withdrawn its earnings guidance for the year."
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.093742,
+      "b": 0.228873,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_3",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Thieves steal Hondas and Toyotas from the 1990s more than other models because they can chop them up and sell them for parts that are worth more than the car .",
+      "choices": [
+        "more than other models because they can chop them up and sell them for parts that are worth more than the car",
+        "more than they steal other models because they can chop them up and sell them for parts that are worth more than the car",
+        "more than they do other models because they can dismantle the cars and sell the parts that are worth more than the car",
+        "more than other models because they can chop the cars up and sell them for parts that are worth more than the car",
+        "more than other models because they can dismantle them up and sell them for parts that are worth more than the car"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.209521,
+      "b": 0.391911,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_4",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Recently, hopes that the European Central Bank will reach a deal to help Spain and Italy borrow at cheaper rates has nudged financial markets higher .",
+      "choices": [
+        "Spain and Italy borrow at cheaper rates has nudged financial markets higher",
+        "Spain and Italy borrow at cheaper rates have nudged financial markets to higher levels",
+        "Spain and Italy borrow at cheaper rates has nudged financial markets to higher levels",
+        "Spain and Italy borrow at cheaper rates nudged financial markets to higher levels",
+        "Spain and Italy borrow at cheaper rates nudged financial markets higher"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.184399,
+      "b": -0.494632,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_5",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Fought on 22 August 1485, the Lancastrians won The Battle of Bosworth Field, the last significant battle of the Wars of the Roses, the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century .",
+      "choices": [
+        "Fought on 22 August 1485, the Lancastrians won The Battle of Bosworth Field, the last significant battle of the Wars of the Roses, the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century",
+        "Fought on 22 August 1485, The Battle of Bosworth Field- the last significant battle of the Wars of the Roses, the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century- was won by the Lancastrians",
+        "Fought on 22 August 1485, the Lancastrians won The Battle of Bosworth Field- the last significant battle of the Wars of the Roses- the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century",
+        "The Lancastrians won The Battle of Bosworth Field, fought on 22 August 1485, the last significant battle of the Wars of the Roses, the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century",
+        "The Lancastrians won The Battle of Bosworth Field, which was fought on 22 August 1485; it was the last significant battle of the Wars of the Roses- the civil war between the House of Lancaster and the House of York that raged across England in the latter half of the 15th century"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.305768,
+      "b": 0.105431,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "reading-comprehension_6",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Unlike Ancient Greek art which saw the veneration of the animal form and the development of equivalent skills to show musculature , poise, beauty and anatomically correct proportions, Ancient Roman art depicted gods as idealized humans, shown with characteristic distinguishing features.",
+      "choices": [
+        "Unlike Ancient Greek art which saw the veneration of the animal form and the development of equivalent skills to show musculature",
+        "Ancient Greek art saw the veneration of the animal form and the development of equivalent skills to show musculature",
+        "While Ancient Greek art saw the veneration of the animal form and developed equivalent skills to show musculature",
+        "While Ancient Greek art venerated the animal form and developed equivalent skills to show musculature",
+        "Unlike Ancient Greek art which venerated the animal form and the development of equivalent skills to show musculature"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.023733,
+      "b": 0.38196,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_7",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "In addition to being convenient, affordable, and versatile, legumes are also full of fiber, vitamins, key minerals and plant protein, plus their antioxidant levels rival berries .",
+      "choices": [
+        "In addition to being convenient, affordable, and versatile, legumes are also full of fiber, vitamins, key minerals and plant protein, plus their antioxidant levels rival berries",
+        "Legumes are not only convenient, affordable, and versatile but are also rich in fiber, vitamins, minerals, plant protein, and levels of antioxidants that rival those of berries",
+        "The convenient, affordable, and versatile legumes are, in addition to rivalling berries for antioxidant levels, full of fiber, vitamins, minerals, and plant protein",
+        "Not only are they convenient, affordable, and versatile, legumes are rich in fiber, vitamins, minerals, and plant protein, rivalling berries in antioxidant levels",
+        "Legumes, in addition to being convenient, affordable, and versatile, are rich in fiber, vitamins, minerals, and plant protein and rival berries in antioxidant level"
+      ],
+      "correct": 4,
+      "explanation": "",
+      "a": 1.470838,
+      "b": 0.629376,
+      "c": 0.2,
+      "choice_order": [
+        4,
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "reading-comprehension_8",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "It is ironic that while the word “perfect” is considered to be the highest compliment possible, calling someone a “perfectionist” is perceived by many as anything but",
+      "choices": [
+        "considered to be the highest compliment possible, calling someone a “perfectionist” is perceived by many as anything but",
+        "considered the highest possible compliment, calling someone a “perfectionist” is perceived by many as anything but",
+        "considered as the highest compliment that is possible, calling a person “a perfectionist” is perceived as nothing much by many",
+        "considered the highest compliment possible, calling a person “a perfectionist” is perceived as anything but by many",
+        "considered the highest possible compliment, calling someone “a perfectionist” is perceived by many as nothing much"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.002761,
+      "b": -0.012035,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_9",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Jane Austen has firmly joined Shakespeare not just as a canonical figure but also as a symbol of Literature itself - the hazel-eyed woman in the mobcap as iconic now as the balding man in the doublet.",
+      "choices": [
+        "Jane Austen has firmly joined Shakespeare not just as a canonical figure but also as a symbol of Literature itself - the hazel-eyed woman in the mobcap as iconic now as the balding man in the doublet.",
+        "Jane Austen is as firm a canonical figure as a symbol of literature itself, like Shakespeare; the hazel-eyed woman in the mobcap and the balding man in the doublet are both iconic.",
+        "Jane Austen, the hazel-eyed woman in the mobcap, and Shakespeare, the balding man in the doublet, have firmly joined together as a canonical figure and a symbol of literature.",
+        "Jane Austen is as iconic as Shakespeare; The hazel-eyed woman in the mobcap and the balding man in the doublet are not only firmly joined as canonical figures but as symbols of literature itself.",
+        "Jane Austen has firmly joined Shakespeare not only as a canonical figure but also as a symbol of Literature - the hazel-eyed woman in the mobcap has been becoming as iconic now as the balding man in the doublet."
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.040159,
+      "b": -0.557987,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_10",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "NASA reports that ancient observers took note of solar eclipses at least as far back as 2500 BC, as evidenced by surviving records from ancient Babylon and China.",
+      "choices": [
+        "as evidenced by surviving records from",
+        "as the evidence that has survived from the records of",
+        "as shows the evidence of records surviving in",
+        "as the surviving records show the evidence of",
+        "as evidenced by records that have survived in"
+      ],
+      "correct": 0,
+      "explanation": "",
+      "a": 1.074158,
+      "b": -0.009425,
+      "c": 0.2,
+      "choice_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_11",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "The sense of elitism in the art world is deepened by the fact that the determination of the authenticity of long-lost works of reputed renaissance-era painters such as Da Vinci is usually not possible by just scientific analysis and forensics but need the expert ‘eye’ of the connoisseurs.",
+      "choices": [
+        "painters such as Da Vinci is usually not possible by just scientific analysis and forensics but need",
+        "painters like Da Vinci is usually not possible by just scientific analysis and forensics but also needs",
+        "painters such as Da Vinci is usually not possible by just scientific analysis and forensics but also needs",
+        "painters like Da Vinci are usually not possible by just scientific analysis and forensics but also needs",
+        "painters such as Da Vinci are usually not possible by just scientific analysis and forensics but need"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 0.972123,
+      "b": -0.175396,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_12",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "With the private space industry at the early stages of a launch revolution – it is expected that the number of launches is going to increase dramatically – it has become imperative to study the effects of the plume of exhaust that a rocket leaves in its wake on the stratosphere and the ozone layer .",
+      "choices": [
+        "it has become imperative to study the effects on the stratosphere and the ozone layer caused by the plume of exhaust that a rocket leaves in its wake",
+        "studying the effects on the stratosphere and the ozone layer caused by the plumes of exhaust left by rockets in their wake has become imperative",
+        "the plume of exhaust left by a rocket in its wake has to be studied for its effects on the stratosphere and the ozone layer",
+        "the study of the plumes of exhaust that rockets leaves in their wake and of the effect on the stratosphere and the ozone layer has become imperative",
+        "it has become imperative to study how the plumes of exhaust that a rocket leaves in its wake affects the stratosphere and the ozone layer"
+      ],
+      "correct": 1,
+      "explanation": "",
+      "a": 1.469335,
+      "b": 0.382562,
+      "c": 0.2,
+      "choice_order": [
+        1,
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_13",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Occupying a small portion of the island of Borneo, the tiny country of Brunei Darussalam had been having a low number of international visitors until 2017, when the numbers, attracted by its famously pristine rainforests, increased by 20% .",
+      "choices": [
+        "the tiny country of Brunei Darussalam had been having a low number of international visitors until 2017, when the numbers, attracted by its famously pristine rainforests, increased by 20%",
+        "the number of international visitors to the tiny country of Brunei Darussalam was low till 2017 when they began to be attracted by its famously pristine rainforests, leading to an increase in numbers by 20%",
+        "the tiny country of Brunei Darussalam saw, in 2017, a 20% increase in the previously low number of international visitors because the tourists were attracted to its famously pristine rainforests",
+        "the tiny country of Brunei Darussalam increased its number of international visitors by 20% in 2017, leading to an attraction for its famously pristine rainforests.",
+        "the international tourists visiting the tiny country of Brunei Darussalam increased their previously low numbers by 20% in 2017, owing to their attraction to its famously pristine rainforests."
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 1.507446,
+      "b": 0.627293,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_14",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Despite smartphones and easy accessibility for social networks, almost half of the millennials – people reaching young adulthood in the 21st century – are feeling isolated and lonely.",
+      "choices": [
+        "Despite smartphones and easy accessibility for social networks,",
+        "Although having smartphones and accessing social networks easily,",
+        "Despite them using smartphones and easily accessing social networks,",
+        "Despite their smartphones making access to social networks easy,",
+        "Although there is an increasing use of smartphones and easy accessibility for social networks,"
+      ],
+      "correct": 3,
+      "explanation": "",
+      "a": 1.181138,
+      "b": 0.203217,
+      "c": 0.2,
+      "choice_order": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "id": "reading-comprehension_15",
+      "section": "verbal",
+      "topic": "Reading Comprehension",
+      "subtopic": "Sentence Correction",
+      "stem": "Given that Agatha Christie wrote 66 novels and 14 short story collections, all of which are still in print in multiple formats and dozens of languages, sceptics would be well advised to admit defeat on the issue of whether or not she sold more books than any other novelist ever has .",
+      "choices": [
+        "admit defeat on the issue of whether or not she sold more books than any other novelist ever has",
+        "be defeated on the issue of whether she sold more books than every other novelist",
+        "admit defeat on the issue of whether she sold more books than any other novelist ever has",
+        "admit defeat on the issue of whether or not she sold more books than any other novelist ever has",
+        "be defeated on the issue of whether she sold more books than every other novelist"
+      ],
+      "correct": 2,
+      "explanation": "",
+      "a": 0.970361,
+      "b": -0.055855,
+      "c": 0.2,
+      "choice_order": [
+        2,
+        0,
+        1,
+        3,
+        4
+      ]
     }
-]
+  ]
+}

@@ -9,8 +9,27 @@ use fnv::FnvHasher;
 use super::NewCard;
 use super::NewCardSortOrder;
 use super::QueueBuilder;
+use crate::deckconfig::ReviewCardOrder;
 
 impl QueueBuilder {
+    /// Ankidote points-at-stake queue: order due review cards by their deck's
+    /// `topic_weight x student_weakness` priority (descending). A stable sort
+    /// preserves the SQL due order within equal-priority topics.
+    pub(super) fn sort_review_points_at_stake(&mut self) {
+        if !matches!(
+            self.context.sort_options.review_order,
+            ReviewCardOrder::PointsAtStake
+        ) {
+            return;
+        }
+        let weights = &self.context.points_at_stake;
+        self.review.sort_by(|a, b| {
+            let wa = weights.get(&a.current_deck_id).copied().unwrap_or(0.0);
+            let wb = weights.get(&b.current_deck_id).copied().unwrap_or(0.0);
+            wb.total_cmp(&wa)
+        });
+    }
+
     pub(super) fn sort_new(&mut self) {
         match self.context.sort_options.new_order {
             // preserve gather order

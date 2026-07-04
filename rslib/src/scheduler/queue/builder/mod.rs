@@ -123,6 +123,9 @@ struct Context {
     seen_note_ids: HashMap<NoteId, BuryMode>,
     deck_map: HashMap<DeckId, Deck>,
     fsrs: bool,
+    /// Ankidote points-at-stake priority per deck (empty unless that review
+    /// order is in use).
+    points_at_stake: HashMap<DeckId, f64>,
 }
 
 impl QueueBuilder {
@@ -147,6 +150,12 @@ impl QueueBuilder {
         );
         let sort_options = sort_options(&root_deck, &config_map);
         let deck_map = col.storage.get_decks_map()?;
+        let points_at_stake = if matches!(sort_options.review_order, ReviewCardOrder::PointsAtStake)
+        {
+            crate::ankidote::points_at_stake_deck_weights(col)
+        } else {
+            HashMap::new()
+        };
 
         let load_balancer = col
             .get_config_bool(BoolKey::LoadBalancerEnabled)
@@ -179,12 +188,14 @@ impl QueueBuilder {
                 seen_note_ids: HashMap::new(),
                 deck_map,
                 fsrs: col.get_config_bool(BoolKey::Fsrs),
+                points_at_stake,
             },
         })
     }
 
     pub(super) fn build(mut self, learn_ahead_secs: i64) -> CardQueues {
         self.sort_new();
+        self.sort_review_points_at_stake();
 
         // intraday learning and total learn count
         let intraday_learning = sort_learning(self.learning);
@@ -479,6 +490,57 @@ mod test {
         fn card_queue_len(&mut self) -> usize {
             self.get_queued_cards(5, false).unwrap().cards.len()
         }
+    }
+
+    #[test]
+    fn points_at_stake_orders_weaker_topic_first() -> Result<()> {
+        let mut col = Collection::new();
+        let nt = col.get_notetype_by_name("Basic")?.unwrap();
+
+        // Parent deck spanning two Ankidote topic subdecks.
+        let mut parent = col.get_or_create_normal_deck("Ankidote").unwrap();
+        let algebra = DeckAdder::new("Ankidote::Algebra").add(&mut col);
+        let arithmetic = DeckAdder::new("Ankidote::Arithmetic").add(&mut col);
+
+        // One due review card in each topic deck.
+        let mut cards = vec![];
+        for did in [algebra.id, arithmetic.id] {
+            let mut note = nt.new_note();
+            note.set_field(0, "foo")?;
+            note.id.0 = 0;
+            col.add_note(&mut note, did)?;
+            let mut card = col.storage.get_card_by_ordinal(note.id, 0)?.unwrap();
+            card.interval = 10;
+            card.due = 0;
+            card.ctype = CardType::Review;
+            card.queue = CardQueue::Review;
+            cards.push(card);
+        }
+        col.update_cards_maybe_undoable(cards, false)?;
+
+        // Diagnostic: Algebra far below target, Arithmetic near it.
+        col.set_config_json(
+            "ankidote",
+            &serde_json::json!({
+                "plan": {"desiredScore": 705},
+                "diagnostic": {"topicScores": [
+                    {"topic": "Algebra", "score": {"low": 300, "high": 360}},
+                    {"topic": "Arithmetic", "score": {"low": 700, "high": 760}},
+                ]},
+            }),
+            false,
+        )?;
+
+        col.set_deck_review_order(&mut parent, ReviewCardOrder::PointsAtStake);
+
+        let order: Vec<DeckId> = col
+            .build_queues(parent.id)?
+            .iter()
+            .map(|e| col.storage.get_card(e.card_id()).unwrap().unwrap().deck_id)
+            .collect();
+        // The weaker topic (more points at stake) is scheduled first.
+        assert_eq!(order, vec![algebra.id, arithmetic.id]);
+        Ok(())
     }
 
     #[test]

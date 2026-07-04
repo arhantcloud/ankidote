@@ -22,7 +22,11 @@ if TYPE_CHECKING:
 # diagnostic runner); the calibrated table replaces this later.
 SECTION_WEIGHT = {"quant": 1 / 3, "verbal": 1 / 3, "data_insights": 1 / 3}
 
-SECTION_LABELS = {"quant": "Quant", "verbal": "Verbal", "data_insights": "Data Insights"}
+SECTION_LABELS = {
+    "quant": "Quant",
+    "verbal": "Verbal",
+    "data_insights": "Data Insights",
+}
 
 # When we have no measured score for a topic we still want the loop to make
 # progress; treat unknown topics as sitting at this score so they get picked up.

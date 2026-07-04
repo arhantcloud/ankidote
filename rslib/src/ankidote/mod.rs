@@ -8,11 +8,61 @@
 //! re-estimated after every response, and the next question is the
 //! unanswered item with maximum Fisher information at the current estimate.
 
+pub(crate) mod engine;
 mod service;
+
+use std::collections::HashMap;
 
 use anki_proto::ankidote::Section;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
+use serde_json::Value;
+
+use crate::collection::Collection;
+use crate::decks::DeckId;
+
+pub(crate) const ANKIDOTE_CONFIG_KEY: &str = "ankidote";
+
+/// Read the persisted ankidote blob (collection config), always an object.
+pub(crate) fn read_blob(col: &Collection) -> Value {
+    col.get_config_optional::<Value, _>(ANKIDOTE_CONFIG_KEY)
+        .filter(Value::is_object)
+        .unwrap_or_else(|| serde_json::json!({}))
+}
+
+/// Resolve a deck's Ankidote topic, accepting either the flat
+/// `"Ankidote {topic}"` deck or an `"...::{topic}"` subdeck whose leaf matches
+/// a known topic.
+fn deck_topic(name: &str, topics: &[String]) -> Option<String> {
+    if let Some(topic) = name.strip_prefix("Ankidote ") {
+        if topics.iter().any(|t| t == topic) {
+            return Some(topic.to_string());
+        }
+    }
+    let leaf = name.rsplit("::").next().unwrap_or(name);
+    topics.iter().find(|t| *t == leaf).cloned()
+}
+
+/// Per-deck points-at-stake priority for the Ankidote topic decks, used by the
+/// scheduler's `PointsAtStake` review order. Non-topic decks are absent (0).
+pub(crate) fn points_at_stake_deck_weights(col: &Collection) -> HashMap<DeckId, f64> {
+    let blob = read_blob(col);
+    let target = engine::target_from_blob(&blob);
+    let measured = engine::measured_from_blob(blob.get("diagnostic"));
+    let topics: Vec<String> = engine::topic_tree().into_iter().map(|t| t.topic).collect();
+    let mut out = HashMap::new();
+    if let Ok(map) = col.storage.get_decks_map() {
+        for (id, deck) in map {
+            if let Some(topic) = deck_topic(&deck.human_name(), &topics) {
+                out.insert(
+                    id,
+                    engine::points_at_stake_weight(&topic, &measured, target),
+                );
+            }
+        }
+    }
+    out
+}
 
 #[derive(Deserialize)]
 pub(crate) struct BankQuestion {

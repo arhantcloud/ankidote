@@ -116,8 +116,9 @@ fn create_review_priority_fn(
             wrap!(move |_c, _w| rand::rng().random_range(0..deck_size) as i32)
         }
 
-        // Not implemented yet
-        Added | ReverseAdded | RelativeOverdueness => None,
+        // Not modelled by the workload simulator (PointsAtStake depends on the
+        // live ankidote diagnostic, not on card fields).
+        Added | ReverseAdded | RelativeOverdueness | PointsAtStake => None,
     }
 }
 

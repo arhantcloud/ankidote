@@ -11,7 +11,10 @@ engine or the wire protocol.
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
+
+_DAY_MS = 24 * 3600 * 1000
 
 # Linear theta -> GMAT total-score mapping: theta in [-3, 3] maps onto the
 # 205-805 scale, i.e. score = SCORE_MID + theta * SCORE_PER_THETA. Matches the
@@ -47,6 +50,35 @@ def score_range(theta: float, se: float) -> ScoreRange:
         low=theta_to_score(theta - Z * se),
         high=theta_to_score(theta + Z * se),
     )
+
+
+def stalest_topics(
+    diagnostic: dict | None,
+    k: int = 3,
+    *,
+    now_ms: float | None = None,
+) -> list[str]:
+    """Topics whose estimate is least trustworthy right now.
+
+    Staleness = ``standardError × (daysSinceMeasured + 1)`` — a wide *or* old
+    estimate rises to the top, so a check-in spends its handful of items where
+    uncertainty is highest (PRD §6.5). Falls back to the widest estimates when
+    no ``measuredAt`` stamps exist yet.
+    """
+    if not diagnostic:
+        return []
+    now = now_ms if now_ms is not None else time.time() * 1000
+    scored: list[tuple[float, str]] = []
+    for entry in diagnostic.get("topicScores", []) or []:
+        topic = entry.get("topic")
+        if not topic:
+            continue
+        se = float(entry.get("standardError", 1.0))
+        measured_at = entry.get("measuredAt") or diagnostic.get("takenAt") or now
+        days = max(0.0, (now - measured_at) / _DAY_MS)
+        scored.append((se * (days + 1.0), topic))
+    scored.sort(reverse=True)
+    return [topic for _, topic in scored[:k]]
 
 
 def combine_topics(

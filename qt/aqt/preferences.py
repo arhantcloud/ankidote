@@ -18,18 +18,15 @@ from aqt.ankihub import ankihub_login, ankihub_logout
 from aqt.operations.collection import set_preferences
 from aqt.profiles import VideoDriver
 from aqt.qt import *
-from aqt.sync import sync_login
 from aqt.theme import Theme
 from aqt.url_schemes import show_url_schemes_dialog
 from aqt.utils import (
     HelpPage,
     add_ellipsis_to_action_label,
-    askUser,
     disable_help_button,
     is_win,
     openHelp,
     showInfo,
-    showWarning,
     tr,
 )
 
@@ -209,15 +206,13 @@ class Preferences(QDialog):
     ######################################################################
 
     def setup_network(self) -> None:
-        self.form.media_log.setText(tr.sync_media_log_button())
-        qconnect(self.form.media_log.clicked, self.on_media_log)
-        self.form.syncOnProgramOpen.setChecked(self.mw.pm.auto_syncing_enabled())
-        self.form.syncMedia.setChecked(self.mw.pm.media_syncing_enabled())
-        self.form.autoSyncMedia.setChecked(
-            self.mw.pm.periodic_sync_media_minutes() != 0
-        )
-        self.form.custom_sync_url.setText(self.mw.pm.custom_sync_url())
-        self.form.network_timeout.setValue(self.mw.pm.network_timeout())
+        # AnkiWeb sync has been removed; Ankidote syncs via Firebase instead.
+        # Hide the AnkiWeb sync options and account boxes but keep the tab
+        # (add-on updates and AnkiHub still live here).
+        self.form.groupBox_5.setVisible(False)
+        account_box = self.form.syncUser.parentWidget()
+        if account_box is not None:
+            account_box.setVisible(False)
 
         self.form.check_for_updates.setChecked(self.mw.pm.check_for_updates())
         qconnect(self.form.check_for_updates.stateChanged, self.mw.pm.set_update_check)
@@ -231,22 +226,11 @@ class Preferences(QDialog):
         )
 
         self.update_login_status()
-        qconnect(self.form.syncLogout.clicked, self.sync_logout)
-        qconnect(self.form.syncLogin.clicked, self.sync_login)
         qconnect(self.form.syncAnkiHubLogout.clicked, self.ankihub_sync_logout)
         qconnect(self.form.syncAnkiHubLogin.clicked, self.ankihub_sync_login)
 
     def update_login_status(self) -> None:
         assert self.prof is not None
-        if not self.prof.get("syncKey"):
-            self.form.syncUser.setText(tr.preferences_ankiweb_intro())
-            self.form.syncLogin.setVisible(True)
-            self.form.syncLogout.setVisible(False)
-        else:
-            self.form.syncUser.setText(self.prof.get("syncUser", ""))
-            self.form.syncLogin.setVisible(False)
-            self.form.syncLogout.setVisible(True)
-
         if not self.mw.pm.ankihub_token():
             self.form.syncAnkiHubUser.setText(tr.preferences_ankihub_intro())
             self.form.syncAnkiHubLogin.setVisible(True)
@@ -255,29 +239,6 @@ class Preferences(QDialog):
             self.form.syncAnkiHubUser.setText(self.mw.pm.ankihub_username())
             self.form.syncAnkiHubLogin.setVisible(False)
             self.form.syncAnkiHubLogout.setVisible(True)
-
-    def on_media_log(self) -> None:
-        self.mw.media_syncer.show_sync_log()
-
-    def sync_login(self) -> None:
-        def on_success():
-            assert self.prof is not None
-            if self.prof.get("syncKey"):
-                self.update_login_status()
-                self.confirm_sync_after_login()
-
-        self.update_network()
-        sync_login(self.mw, on_success)
-
-    def sync_logout(self) -> None:
-        if self.mw.media_syncer.is_syncing():
-            showWarning("Can't log out while sync in progress.")
-            return
-        assert self.prof is not None
-        self.prof["syncKey"] = None
-        self.mw.col.media.force_resync()
-        self.mw.ankidote_on_logout()
-        self.update_login_status()
 
     def ankihub_sync_login(self) -> None:
         def on_success():
@@ -292,23 +253,9 @@ class Preferences(QDialog):
             return
         ankihub_logout(self.mw, self.update_login_status, ankihub_token)
 
-    def confirm_sync_after_login(self) -> None:
-        from aqt import mw
-
-        if askUser(tr.preferences_login_successful_sync_now(), parent=mw):
-            self.accept_with_callback(self.mw.on_sync_button_clicked)
-
     def update_network(self) -> None:
-        assert self.prof is not None
-        self.prof["autoSync"] = self.form.syncOnProgramOpen.isChecked()
-        self.prof["syncMedia"] = self.form.syncMedia.isChecked()
-        self.mw.pm.set_periodic_sync_media_minutes(
-            self.form.autoSyncMedia.isChecked() and 15 or 0
-        )
-        if self.form.fullSync.isChecked():
-            self.mw.col.mod_schema(check=False)
-        self.mw.pm.set_custom_sync_url(self.form.custom_sync_url.text())
-        self.mw.pm.set_network_timeout(self.form.network_timeout.value())
+        # AnkiWeb sync removed; no network sync settings to persist.
+        return
 
     # Global preferences
     ######################################################################

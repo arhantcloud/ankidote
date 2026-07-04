@@ -3,23 +3,21 @@
 
 """Per-topic exam-problem storage (PRD §5.5).
 
-Practice problems are a **separate store** from both the Anki flashcard decks
-(cards measure recall) and the diagnostic item bank (problems measure
-application). For now problems are **generated temporarily** — deterministic,
-seeded arithmetic MCQs tagged with the topic — so the loop is fully functional
-before authored/calibrated problems are ingested. Real problems drop in behind
-the same ``get_pool`` / ``get`` interface with no caller changes.
+Practice problems reuse the calibrated item bank (real GMAT questions with
+py-irt parameters and a canonical ``choice_order`` for answer-choice ranking),
+so the loop's per-topic ``CatSession`` re-estimates θ from real, application-
+style items. When a topic has no calibrated items yet, we fall back to a
+deterministic, seeded arithmetic pool so the loop still runs end-to-end.
 
-Each problem carries 3PL IRT parameters and reuses the diagnostic ``Item``
-dataclass so the existing ``CatSession``/``irt`` code can re-estimate θ from a
-handful of them.
+Real problems and the diagnostic share the ``Item`` dataclass, so the existing
+``CatSession``/``irt`` code works unchanged.
 """
 
 from __future__ import annotations
 
 import random
 
-from anki.ankidote.item_bank import Item
+from anki.ankidote.item_bank import Item, get_bank
 from anki.ankidote.topics import section_for_topic
 
 # Size of the deterministic pool generated per topic. A loop iteration draws
@@ -70,8 +68,7 @@ def _generate_pool(topic: str) -> list[Item]:
                 topic=topic,
                 subtopic="Practice",
                 stem=(
-                    f"[{topic}] Sample practice problem #{i + 1}. "
-                    f"Compute {x} {op} {y}."
+                    f"[{topic}] Sample practice problem #{i + 1}. Compute {x} {op} {y}."
                 ),
                 choices=[str(c) for c in choices],
                 correct=correct,
@@ -85,19 +82,29 @@ def _generate_pool(topic: str) -> list[Item]:
 
 
 def get_pool(topic: str) -> list[Item]:
-    """Return (and memoize) the temp problem pool for a topic."""
+    """Return the problem pool for a topic.
+
+    Prefers the calibrated item bank (real GMAT items); falls back to a
+    deterministic generated pool for topics with no calibrated items.
+    """
+    real = get_bank().items_for_topic(topic)
+    if real:
+        return list(real)
     if topic not in _pools:
         _pools[topic] = _generate_pool(topic)
     return list(_pools[topic])
 
 
 def get(problem_id: str) -> Item | None:
-    """Look up a single problem by id (e.g. ``prob::Algebra::3``)."""
+    """Look up a single problem by id (calibrated bank id or ``prob::...``)."""
+    item = get_bank().get(problem_id)
+    if item is not None:
+        return item
     try:
         _, topic, _idx = problem_id.split("::")
     except ValueError:
         return None
-    for item in get_pool(topic):
-        if item.id == problem_id:
-            return item
+    for candidate in get_pool(topic):
+        if candidate.id == problem_id:
+            return candidate
     return None
