@@ -172,12 +172,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     function problemsHint(s: LoopState): string {
         if (!s.problemsDoneForDay) {
-            return "Study more cards first — finish today's cards for this deck, then keep maturing them.";
+            return "Study more cards first. Finish today's cards for this deck, then keep maturing them.";
         }
         const n = s.problemsRemaining ?? 0;
-        return `Study more cards first — ${n} more card${
+        return `Study more cards first. ${n} more card${
             n === 1 ? "" : "s"
-        } need to reach a 3-day interval before problems unlock.`;
+        } need to reach a 3 day interval before problems unlock.`;
     }
 
     // --- check-ins (stale-targeted mini-CAT) -------------------------------
@@ -267,10 +267,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             <div class="banner" class:blocking={state.checkinBlocking}>
                 <div>
                     <h3>
-                        {state.checkinBlocking ? "Check-in required" : "Check-in due"}
+                        {state.checkinBlocking ? "Check in required" : "Check in due"}
                     </h3>
                     <p>
-                        A quick ~10-question check-in re-anchors your score range on the
+                        A quick ~10 question check in reanchors your score range on the
                         topics that have gone stale.
                         {#if state.checkinBlocking}
                             Your estimate can't be left stale any longer.
@@ -279,7 +279,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 </div>
                 <div class="banner-actions">
                     <Button on:click={startCheckin} disabled={loading}>
-                        Start check-in
+                        Start check in
                     </Button>
                 </div>
             </div>
@@ -293,7 +293,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <span class="step-num">✓</span>
                     <div class="step-body">
                         <h3>
-                            Check-in · {checkin.answered + 1}/{checkin.maxQuestions}
+                            Check in · {checkin.answered + 1}/{checkin.maxQuestions}
                         </h3>
                         <p class="stem">{checkin.question.stem}</p>
                         <div class="choices">
@@ -322,8 +322,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 </div>
             {:else}
                 <div class="step-body">
-                    <h3>Check-in complete</h3>
-                    <p>Your score range has been re-anchored.</p>
+                    <h3>Check in complete</h3>
+                    <p>Your score range has been reanchored.</p>
                     {#if checkin.before && checkin.after}
                         <div class="beforeafter">
                             {#each Object.keys(checkin.after) as topic}
@@ -474,14 +474,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <div class="step">
                     <span class="step-num">2</span>
                     <div class="step-body">
-                        <h3>Deck done for today — test what stuck?</h3>
+                        <h3>Deck done for today. Test what stuck?</h3>
                         <p>
                             <b>{state.masteryGained}</b>
                             more card{state.masteryGained === 1 ? "" : "s"} in
                             <b>{state.topic}</b>
-                            {state.masteryGained === 1 ? "has" : "have"} moved past a 3-day
+                            {state.masteryGained === 1 ? "has" : "have"} moved past a 3 day
                             interval since your last check ({state.mastered}/{state.total}
-                            mastered). That's enough change to re-measure with a few practice
+                            mastered). That's enough change to remeasure with a few practice
                             problems.
                         </p>
                         <div class="actions">

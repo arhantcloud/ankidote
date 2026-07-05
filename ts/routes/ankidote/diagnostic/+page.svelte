@@ -181,22 +181,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <h1>Find out where you stand.</h1>
                 <p class="sub">
                     An adaptive test: each question is picked to teach us the most about
-                    your ability, so it stays short. You'll get a GMAT score range
-                    &mdash; overall and per topic &mdash; not a false-precision point
+                    your ability, so it stays short. You'll get a GMAT score range,
+                    overall and per topic, not a false precision point
                     score.
                 </p>
                 <ul class="facts">
                     <li>
-                        <b>Adaptive length</b>
-                        &mdash; it stops as soon as your score range is tight enough
+                        <b>Adaptive length</b>: it stops as soon as your score range is tight enough
                     </li>
                     <li>
-                        <b>Quant, Verbal, Data Insights</b>
-                        &mdash; all three sections
+                        <b>Quant, Verbal, Data Insights</b>: all three sections
                     </li>
                     <li>
-                        <b>No going back</b>
-                        &mdash; just like test day
+                        <b>No going back</b>: just like test day
                     </li>
                 </ul>
                 <Button on:click={begin} disabled={loading}>
@@ -214,7 +211,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         Heads up: skipping means your starting score is an
                         <b>extremely vague estimate</b>, not a measurement. Your
                         plan and predictions stay rough until you take the
-                        diagnostic &mdash; you can do it anytime.
+                        diagnostic. You can do it anytime.
                     </p>
                 </div>
                 {#if errorMessage}
@@ -281,7 +278,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <div class="big-score">{scoreLabel}</div>
                 <p class="sub">
                     Based on {latest.answered} adaptive questions. The band narrows as Ankidote
-                    gathers more evidence &mdash; certainty is earned, not assumed.
+                    gathers more evidence. Certainty is earned, not assumed.
                 </p>
             </div>
 

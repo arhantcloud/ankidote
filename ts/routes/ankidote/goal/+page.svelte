@@ -11,8 +11,19 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // to be replaced by workload-simulation telemetry).
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import { fade, fly, scale } from "svelte/transition";
+    import { quintOut } from "svelte/easing";
     import { loadAnkidoteState, saveAnkidoteState } from "../state";
-    import { Shell, Card, Badge, Button, DropperSwitch } from "../_lib";
+    import {
+        Shell,
+        Card,
+        Badge,
+        Button,
+        DropperSwitch,
+        Beaker,
+        Dropper,
+        PourFX,
+    } from "../_lib";
     import {
         type CommitmentDef,
         defaultCommitments,
@@ -20,7 +31,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     } from "../_lib/commitments";
     import { computePlan, percentile, toScore } from "../_lib/plan";
 
-    let phase: "goal" | "plan" = "goal";
+    // The target + craft flow is a sequence of big, one-at-a-time stages rather
+    // than a single stacked form: reveal the current range, then pick the score,
+    // weekly time and exam date, then pour each ingredient into the brew, and
+    // finally land on the full editable plan. A live HUD tracks total hours and
+    // the ANTIcipated range across every stage so toggles show their effect.
+    type Step = "reveal" | "score" | "budget" | "date" | "walk" | "plan";
+    let phase: Step = "reveal";
 
     let desiredScore = 645;
     let weeklyBudget = 8;
@@ -84,6 +101,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 defaultCommitments(),
                 state.plan.commitments,
             );
+            // Already crafted before — skip straight to the editable summary.
+            phase = "plan";
         }
         if (state.diagnostic && applyDiagnostic(state.diagnostic)) {
             return;
@@ -147,6 +166,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         alreadyThere,
     } = est);
 
+    // The opening reveal shows where you stand: the diagnostic range when we
+    // have one, otherwise a rough band around the fallback baseline.
+    $: revealLow = hasDiagnostic ? diagLow : Math.max(205, baseline - 60);
+    $: revealHigh = hasDiagnostic ? diagHigh : Math.min(805, baseline + 60);
+
     // Auto-tune the plan the first time it's built: switch on only as many
     // habits as are needed to land the desired score inside the exam window,
     // most-effective first. If even every habit isn't enough, they all stay on.
@@ -178,13 +202,95 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         commitments = commitments;
     }
 
-    function toPlan(): void {
-        // Respect an already-saved plan's choices; only tune a fresh plan, once.
+    // --- craft walkthrough --------------------------------------------------
+    // We pour ingredients in one at a time. Cards/problems come first (they set
+    // the pace and are required), then the efficiency habits the user can keep
+    // or leave out. `walkOrder` is stable because toggling `enabled` never
+    // changes membership, only flags.
+    let walkIndex = 0;
+    let anim: "pour" | "toss" | null = null;
+
+    $: walkOrder = [...quotaCommitments, ...gridCommitments];
+    $: current = walkOrder[walkIndex] ?? null;
+
+    // Each ingredient drips in a distinct, vivid colour so no two pours look
+    // alike as you build the recipe.
+    const POUR_COLORS = [
+        "#a3e635", // lime
+        "#f59e0b", // amber
+        "#38bdf8", // sky
+        "#a855f7", // violet
+        "#f43f5e", // rose
+        "#2dd4bf", // teal
+        "#facc15", // gold
+        "#4ade80", // green
+    ];
+    $: curColor = POUR_COLORS[walkIndex % POUR_COLORS.length];
+
+    // The brew's colour crossfades toward the freshly-added ingredient after
+    // each addition (animated by Beaker's transitionable --tint).
+    let brewTint = "#22c55e";
+
+    // The brew's fill = how comfortably the plan lands inside the exam window.
+    // Adding an ingredient shortens the time needed, so the level visibly rises.
+    $: brewFill = alreadyThere
+        ? 100
+        : weeksNeeded <= 0
+          ? 100
+          : Math.max(5, Math.min(100, Math.round((weeksLeft / weeksNeeded) * 100)));
+
+    function startCraft(): void {
+        // Tune a fresh plan to the minimal on-track set before the walkthrough,
+        // so the suggested state for each ingredient reflects what's needed.
         if (!hasSavedPlan && !autoTuned) {
             autoEnableCommitments();
             autoTuned = true;
         }
-        phase = "plan";
+        walkIndex = 0;
+        anim = null;
+        phase = "walk";
+    }
+
+    function advance(): void {
+        anim = null;
+        if (walkIndex + 1 >= walkOrder.length) {
+            phase = "plan";
+        } else {
+            walkIndex += 1;
+        }
+    }
+
+    function keepCurrent(): void {
+        if (!current || anim) {
+            return;
+        }
+        current.enabled = true;
+        commitments = commitments;
+        // Tint the brew toward the ingredient just added (animated crossfade).
+        brewTint = curColor;
+        anim = "pour";
+        setTimeout(advance, 900);
+    }
+
+    function dropCurrent(): void {
+        if (!current || anim) {
+            return;
+        }
+        current.enabled = false;
+        commitments = commitments;
+        anim = "toss";
+        setTimeout(advance, 720);
+    }
+
+    function walkBack(): void {
+        if (anim) {
+            return;
+        }
+        if (walkIndex === 0) {
+            phase = "date";
+        } else {
+            walkIndex -= 1;
+        }
     }
 
     async function savePlan(): Promise<void> {
@@ -216,102 +322,239 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 </script>
 
 <Shell align="top" max="48rem">
-    {#if phase === "goal"}
-        <Card>
-            <Badge variant="green" dot>Set your target</Badge>
-            <h1>What score, and what's it worth in hours?</h1>
-            <p class="sub">
-                Pick where you want to land and how much time you'll spend. Your
-                required hours are measured up from your diagnostic — so the closer you
-                already are, the less it costs.
-            </p>
-
-            <div class="baseline" class:estimated={!hasDiagnostic || vague}>
-                {#if hasDiagnostic && !vague}
-                    <span class="baseline-label">Your diagnostic baseline</span>
-                    <span class="baseline-value">
-                        {baseline}
-                        <em>({diagLow}–{diagHigh})</em>
-                    </span>
-                {:else}
-                    <span class="baseline-label">
-                        {vague ? "Diagnostic skipped" : "No diagnostic yet"}
-                    </span>
-                    <span class="baseline-value">
-                        ~{baseline}
-                        <em>vague estimate</em>
-                    </span>
-                {/if}
-            </div>
-
-            {#if vague || !hasDiagnostic}
-                <p class="vague-warn">
-                    Your starting score is an <b>extremely vague estimate</b>, not
-                    a measurement, so your plan and predictions stay rough.
-                    <a href="/ankidote/diagnostic">Take the diagnostic</a>
-                    anytime to anchor your baseline and tighten every number.
-                </p>
+    {#if phase !== "plan"}
+        <div class="wizard">
+            {#if phase !== "reveal"}
+                <div class="hud" transition:fade={{ duration: 250 }}>
+                    <div class="hud-item">
+                        <span class="hud-label">Total time</span>
+                        <span class="hud-value">{totalHours}<em>hrs</em></span>
+                    </div>
+                    <div class="hud-sep"></div>
+                    <div class="hud-item">
+                        <span class="hud-label">Predicted by exam</span>
+                        <span class="hud-value accent">
+                            {predictedLow}&ndash;{predictedHigh}
+                        </span>
+                    </div>
+                </div>
             {/if}
 
-            <div class="field">
-                <div class="field-head">
-                    <label for="score">Desired score</label>
-                    <span class="field-value">
-                        {desiredScore}
-                        <em>~{percentile(desiredScore)}th pct</em>
-                    </span>
+            {#if phase === "reveal"}
+                <div
+                    class="stage"
+                    in:fly={{ y: 26, duration: 520, easing: quintOut }}
+                >
+                    <Badge variant="green" dot>Diagnostic complete</Badge>
+                    <p class="stage-eyebrow">Where you stand today</p>
+                    <div class="big-range">
+                        {revealLow}<span class="dash">&ndash;</span>{revealHigh}
+                    </div>
+                    <p class="stage-sub">
+                        {#if vague || !hasDiagnostic}
+                            This is a <b>vague estimate</b>. Take the diagnostic
+                            anytime to anchor it. Let's craft the antidote that
+                            moves it.
+                        {:else}
+                            Your current GMAT range from the diagnostic. Now
+                            let's craft the antidote that moves it.
+                        {/if}
+                    </p>
+                    <Button on:click={() => (phase = "score")}>
+                        Set my target &rarr;
+                    </Button>
                 </div>
-                <input
-                    id="score"
-                    type="range"
-                    min="205"
-                    max="805"
-                    step="10"
-                    bind:value={desiredScore}
-                />
-                <div class="scale">
-                    <span>205</span>
-                    <span>805</span>
+            {:else if phase === "score"}
+                <div
+                    class="stage"
+                    in:fly={{ y: 26, duration: 460, easing: quintOut }}
+                >
+                    <p class="stage-eyebrow">Your desired score</p>
+                    <div class="big-number">{desiredScore}</div>
+                    <p class="stage-pct">~{percentile(desiredScore)}th percentile</p>
+                    <input
+                        class="big-slider"
+                        type="range"
+                        min="205"
+                        max="805"
+                        step="10"
+                        bind:value={desiredScore}
+                    />
+                    <div class="scale wide">
+                        <span>205</span>
+                        <span>805</span>
+                    </div>
+                    <div class="stage-nav">
+                        <button class="ghost" on:click={() => (phase = "reveal")}>
+                            &larr; back
+                        </button>
+                        <Button on:click={() => (phase = "budget")}>Next &rarr;</Button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="field">
-                <div class="field-head">
-                    <label for="budget">Time I'll spend</label>
-                    <span class="field-value">
-                        {weeklyBudget}
-                        <em>hrs / week</em>
-                    </span>
+            {:else if phase === "budget"}
+                <div
+                    class="stage"
+                    in:fly={{ y: 26, duration: 460, easing: quintOut }}
+                >
+                    <p class="stage-eyebrow">Time you'll spend</p>
+                    <div class="big-number">
+                        {weeklyBudget}<span class="unit">hrs<em>/week</em></span>
+                    </div>
+                    <input
+                        class="big-slider"
+                        type="range"
+                        min="2"
+                        max="25"
+                        step="1"
+                        bind:value={weeklyBudget}
+                    />
+                    <div class="scale wide">
+                        <span>2 hrs</span>
+                        <span>25 hrs</span>
+                    </div>
+                    <div class="stage-nav">
+                        <button class="ghost" on:click={() => (phase = "score")}>
+                            &larr; back
+                        </button>
+                        <Button on:click={() => (phase = "date")}>Next &rarr;</Button>
+                    </div>
                 </div>
-                <input
-                    id="budget"
-                    type="range"
-                    min="2"
-                    max="25"
-                    step="1"
-                    bind:value={weeklyBudget}
-                />
-                <div class="scale">
-                    <span>2 hrs</span>
-                    <span>25 hrs</span>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="field-head">
-                    <label for="date">Target test date</label>
-                    <span class="field-value">
+            {:else if phase === "date"}
+                <div
+                    class="stage"
+                    in:fly={{ y: 26, duration: 460, easing: quintOut }}
+                >
+                    <p class="stage-eyebrow">Your exam date</p>
+                    <input class="big-date" type="date" bind:value={testDate} />
+                    <p class="stage-pct">
                         {weeksLeft}
-                        <em>weeks away</em>
-                    </span>
+                        {weeksLeft === 1 ? "week" : "weeks"} away
+                    </p>
+                    <div class="stage-nav">
+                        <button class="ghost" on:click={() => (phase = "budget")}>
+                            &larr; back
+                        </button>
+                        <Button on:click={startCraft}>
+                            Start crafting the brew &rarr;
+                        </Button>
+                    </div>
                 </div>
-                <input id="date" type="date" bind:value={testDate} />
-            </div>
+            {:else if phase === "walk" && current}
+                <div class="stage craft" in:fade={{ duration: 260 }}>
+                    <div class="craft-progress">
+                        Ingredient {walkIndex + 1} of {walkOrder.length}
+                    </div>
+                    <div class="ing-info">
+                        <span class="ing-name">{current.name}</span>
+                        <p class="ing-enforce">{current.enforce}</p>
+                    </div>
 
-            <div class="actions">
-                <Button on:click={toPlan}>See my plan &rarr;</Button>
-            </div>
-        </Card>
+                    <div class="pour-zone">
+                        <div class="ing-slot">
+                            {#key walkIndex}
+                                <div
+                                    class="ing-vial {anim ?? ''}"
+                                    in:scale={{
+                                        duration: 340,
+                                        start: 0.8,
+                                        easing: quintOut,
+                                    }}
+                                >
+                                    <Dropper
+                                        tint={curColor}
+                                        squeezing={anim === "pour"}
+                                        width={58}
+                                        height={152}
+                                    />
+                                </div>
+                            {/key}
+                        </div>
+
+                        {#if anim === "pour"}
+                            <div class="fx-slot" out:fade={{ duration: 160 }}>
+                                <PourFX tint={curColor} />
+                            </div>
+                        {/if}
+
+                        <div class="brew">
+                            <Beaker
+                                tint={brewTint}
+                                shape="flask"
+                                fill={brewFill}
+                                width={186}
+                                height={224}
+                                seed={4242}
+                            />
+                            <span class="brew-label">the brew</span>
+                        </div>
+                    </div>
+
+                    {#if current.rates}
+                        <div class="ing-rates">
+                            {#each current.rates as r (r.level)}
+                                <button
+                                    class="rate"
+                                    class:active={current.selected === r.level}
+                                    on:click={() => setLevel(current, r.level)}
+                                    disabled={!!anim}
+                                >
+                                    <span class="rate-num">
+                                        {r.rate}
+                                        <em>{current.unit}</em>
+                                    </span>
+                                    <span class="rate-env">{r.env}</span>
+                                </button>
+                            {/each}
+                        </div>
+                        <p class="ing-req">
+                            Required. It sets your pace &amp; ANTIcipated score.
+                        </p>
+                        <div class="ing-actions">
+                            <button
+                                class="ghost"
+                                on:click={walkBack}
+                                disabled={!!anim}
+                            >
+                                &larr; back
+                            </button>
+                            <Button on:click={keepCurrent} disabled={!!anim}>
+                                Pour it in &rarr;
+                            </Button>
+                        </div>
+                    {:else}
+                        <p class="ing-impact">
+                            {#if current.enabled}
+                                Keeps
+                                <b>{round1(gapHours * (current.efficiency ?? 0))} hrs</b>
+                                off your total.
+                            {:else}
+                                Leaving it out adds
+                                <b>{round1(gapHours * (current.efficiency ?? 0))} hrs</b>.
+                            {/if}
+                        </p>
+                        <div class="ing-actions two">
+                            <button
+                                class="toss-btn"
+                                on:click={dropCurrent}
+                                disabled={!!anim}
+                            >
+                                Leave it out
+                            </button>
+                            <Button on:click={keepCurrent} disabled={!!anim}>
+                                Add to the brew
+                            </Button>
+                        </div>
+                        <button
+                            class="ghost small"
+                            on:click={walkBack}
+                            disabled={!!anim}
+                        >
+                            &larr; back
+                        </button>
+                    {/if}
+                </div>
+            {/if}
+        </div>
     {:else}
         <Card>
             <Badge variant="lime" dot>Your Ankidote plan</Badge>
@@ -362,15 +605,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
             <p class="verdict" class:warn={!onTrack}>
                 {#if alreadyThere}
-                    Your diagnostic already meets this target — 0 hours needed. Aim
+                    Your diagnostic already meets this target, so 0 hours are needed. Aim
                     higher to build a plan.
                 {:else if onTrack}
-                    On track — at {weeklyBudget} hrs/week you'll close the gap in ~{weeksNeeded}
-                    {weeksNeeded === 1 ? "week" : "weeks"}, inside your {weeksLeft}-week
+                    You're on track. At {weeklyBudget} hrs/week you'll close the gap in ~{weeksNeeded}
+                    {weeksNeeded === 1 ? "week" : "weeks"}, inside your {weeksLeft} week
                     window.
                 {:else}
-                    Behind — {totalHours} hrs at {weeklyBudget} hrs/week takes ~{weeksNeeded}
-                    weeks, past your {weeksLeft}-week window. Add weekly time, keep more
+                    You're behind. {totalHours} hrs at {weeklyBudget} hrs/week takes ~{weeksNeeded}
+                    weeks, past your {weeksLeft} week window. Add weekly time, keep more
                     habits, or push the date.
                 {/if}
             </p>
@@ -390,8 +633,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             <div class="popover">
                                 <p class="enforce">{c.enforce}</p>
                                 <p class="tradeoff">
-                                    {#if c.cost}<b>{c.cost}</b>
-                                        &mdash;
+                                    {#if c.cost}<b>{c.cost}</b>:
                                     {/if}{c.tradeoff}
                                 </p>
                             </div>
@@ -438,8 +680,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             <div class="popover">
                                 <p class="enforce">{c.enforce}</p>
                                 <p class="tradeoff">
-                                    {#if c.cost}<b>{c.cost}</b>
-                                        &mdash;
+                                    {#if c.cost}<b>{c.cost}</b>:
                                     {/if}{c.tradeoff}
                                 </p>
                             </div>
@@ -468,7 +709,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             </div>
 
             <div class="actions split">
-                <Button variant="outline" on:click={() => (phase = "goal")}>
+                <Button variant="outline" on:click={() => (phase = "score")}>
                     &larr; Adjust target
                 </Button>
                 <Button on:click={savePlan}>Lock in my plan &rarr;</Button>
@@ -517,104 +758,388 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         vertical-align: middle;
     }
 
-    /* --- goal inputs --- */
-    .baseline {
+    /* --- craft wizard --- */
+    .wizard {
         display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.8rem;
-        padding: 0.8rem 1rem;
-        margin-bottom: 1.6rem;
-        border: 1px solid rgba(34, 197, 94, 0.5);
-        border-radius: ad.$r-card-sm;
-        background: ad.$green-wash;
-
-        &.estimated {
-            border-color: ad.$border;
-            background: transparent;
-        }
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.4rem;
+        min-height: 62vh;
     }
 
-    .baseline-label {
+    .hud {
+        position: sticky;
+        top: 0.5rem;
+        z-index: 10;
+        display: flex;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 0.55rem 1.2rem;
+        border-radius: ad.$r-pill;
+        @include ad.glass(rgba(15, 21, 18, 0.82));
+        box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.7);
+    }
+
+    .hud-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        text-align: center;
+    }
+
+    .hud-label {
         font-family: ad.$font-mono;
-        font-size: 0.72rem;
-        font-weight: 500;
-        letter-spacing: 0.1em;
+        font-size: 0.58rem;
         text-transform: uppercase;
+        letter-spacing: 0.1em;
         color: ad.$muted;
     }
 
-    .baseline-value {
+    .hud-value {
         font-family: ad.$font-heading;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        letter-spacing: -0.02em;
-        color: ad.$green;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
 
         em {
             font-family: ad.$font-mono;
-            font-size: 0.78rem;
             font-style: normal;
+            font-size: 0.68rem;
             font-weight: 400;
             color: ad.$muted;
+            margin-left: 0.2rem;
+        }
+
+        &.accent {
+            @include ad.gradient-text(ad.$green, ad.$lime);
         }
     }
 
-    .vague-warn {
-        margin: -0.9rem 0 1.6rem;
-        padding: 0.7rem 0.9rem;
-        border: 1px solid ad.$border;
-        border-left: 2px solid #e0a758;
-        border-radius: ad.$r-input;
-        background: rgba(224, 167, 88, 0.08);
-        font-size: 0.84rem;
-        line-height: 1.5;
+    .hud-sep {
+        width: 1px;
+        background: ad.$border;
+    }
+
+    .stage {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.8rem;
+    }
+
+    .stage-eyebrow {
+        font-family: ad.$font-mono;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
         color: ad.$muted;
+        margin: 0.4rem 0 0;
+    }
+
+    .stage-sub {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: ad.$muted;
+        max-width: 30rem;
+        margin: 0 0 0.6rem;
 
         b {
-            color: #e0a758;
+            color: ad.$fg;
             font-weight: 600;
         }
+    }
 
-        a {
-            color: ad.$green;
-            font-weight: 600;
-            text-decoration: none;
+    .stage-pct {
+        font-family: ad.$font-mono;
+        font-size: 0.9rem;
+        color: ad.$green;
+        margin: 0;
+    }
 
-            &:hover {
-                text-decoration: underline;
+    .big-number,
+    .big-range {
+        font-family: ad.$font-heading;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        @include ad.gradient-text(ad.$green, ad.$lime);
+        animation: ad-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .big-number {
+        font-size: clamp(4rem, 18vw, 7rem);
+
+        .unit {
+            font-size: 0.3em;
+            letter-spacing: 0;
+            -webkit-text-fill-color: initial;
+            color: ad.$muted;
+            margin-left: 0.3rem;
+
+            em {
+                font-style: normal;
             }
         }
     }
 
-    .field {
-        margin-bottom: 1.6rem;
-    }
-
-    .field-head {
+    .big-range {
+        font-size: clamp(3rem, 13vw, 5.2rem);
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 0.6rem;
-    }
+        align-items: center;
+        gap: 0.4rem;
 
-    label {
-        font-weight: 600;
-        font-size: 0.95rem;
-    }
-
-    .field-value {
-        font-family: ad.$font-heading;
-        font-size: 1.35rem;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-
-        em {
-            font-family: ad.$font-mono;
-            font-style: normal;
-            font-size: 0.78rem;
-            font-weight: 400;
+        .dash {
+            -webkit-text-fill-color: initial;
             color: ad.$muted;
+            font-weight: 300;
+        }
+    }
+
+    .big-slider {
+        width: min(28rem, 100%);
+        height: 8px;
+        margin-top: 0.5rem;
+    }
+
+    .scale.wide {
+        width: min(28rem, 100%);
+    }
+
+    .big-date {
+        width: min(20rem, 100%);
+        height: 60px;
+        font-family: ad.$font-heading;
+        font-size: 1.4rem;
+        text-align: center;
+        margin: 0.6rem 0 0;
+    }
+
+    .stage-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .ghost {
+        background: none;
+        border: none;
+        padding: 0.4rem 0.6rem;
+        font-family: ad.$font-mono;
+        font-size: 0.82rem;
+        color: ad.$muted;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover:not(:disabled) {
+            color: ad.$fg;
+        }
+        &:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        &.small {
+            margin-top: 0.4rem;
+        }
+    }
+
+    /* --- craft walkthrough --- */
+    .craft {
+        gap: 0.7rem;
+    }
+
+    .craft-progress {
+        font-family: ad.$font-mono;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: ad.$muted;
+    }
+
+    .ing-info {
+        max-width: 30rem;
+    }
+
+    .ing-name {
+        font-family: ad.$font-heading;
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        display: block;
+    }
+
+    .ing-enforce {
+        font-size: 0.95rem;
+        line-height: 1.55;
+        color: ad.$muted;
+        margin: 0.4rem 0 0;
+    }
+
+    .pour-zone {
+        position: relative;
+        width: 220px;
+        height: 380px;
+        margin: 0.4rem auto 0;
+    }
+
+    .ing-slot {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+    }
+
+    .ing-vial {
+        transform-origin: 50% 50%;
+        will-change: transform;
+    }
+
+    .ing-vial.pour {
+        animation: ad-pour-tip 0.9s cubic-bezier(0.4, 0, 0.3, 1);
+    }
+
+    .ing-vial.toss {
+        animation: ad-toss-away 0.72s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+
+    .fx-slot {
+        position: absolute;
+        top: 150px;
+        left: 50%;
+        width: 120px;
+        height: 110px;
+        transform: translateX(-50%);
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .brew {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .brew-label {
+        font-family: ad.$font-mono;
+        font-size: 0.66rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: ad.$muted;
+        margin-top: 0.3rem;
+    }
+
+    .ing-impact {
+        font-size: 0.92rem;
+        color: ad.$muted;
+        margin: 0;
+
+        b {
+            color: ad.$green;
+            font-weight: 700;
+        }
+    }
+
+    .ing-req {
+        font-family: ad.$font-mono;
+        font-size: 0.74rem;
+        color: ad.$muted;
+        margin: 0;
+    }
+
+    .ing-rates {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        width: min(34rem, 100%);
+    }
+
+    .ing-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 0.4rem;
+        flex-wrap: wrap;
+
+        &.two {
+            gap: 1.2rem;
+        }
+    }
+
+    .toss-btn {
+        padding: 0.7rem 1.3rem;
+        border-radius: ad.$r-pill;
+        border: 1px solid rgba(224, 167, 88, 0.5);
+        background: transparent;
+        color: #e0a758;
+        font-family: ad.$font-body;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            box-shadow 0.15s ease;
+
+        &:hover:not(:disabled) {
+            background: rgba(224, 167, 88, 0.1);
+        }
+        &:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+    }
+
+    @keyframes ad-pop {
+        0% {
+            opacity: 0;
+            transform: translateY(16px) scale(0.9);
+        }
+        60% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    // The dropper dips toward the brew as it squeezes, then lifts back — the
+    // bulb-squeeze and the drip itself are choreographed inside <Dropper>.
+    @keyframes ad-pour-tip {
+        0% {
+            transform: translateY(0);
+        }
+        24% {
+            transform: translateY(9px);
+        }
+        44% {
+            transform: translateY(6px);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes ad-toss-away {
+        0% {
+            transform: rotate(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translate(150px, -30px) rotate(56deg);
+            opacity: 0;
         }
     }
 

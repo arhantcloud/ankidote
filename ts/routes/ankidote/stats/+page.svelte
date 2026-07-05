@@ -257,7 +257,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <div class="empty">
                     <h2>No diagnostic yet</h2>
                     <p>
-                        Take the adaptive diagnostic and your score range, per-topic
+                        Take the adaptive diagnostic and your score range, per topic
                         breakdown, and readiness will appear here.
                     </p>
                     <Button on:click={() => goto("/ankidote/diagnostic")}>
@@ -354,7 +354,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             </ul>
                         {:else}
                             <p class="metric-line">
-                                Chance you answer an exam-style question right.
+                                Chance you answer an exam style question right.
                             </p>
                             {#if performanceHasData}
                                 <p class="metric-meta">
@@ -393,7 +393,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                             ?.mastered}/{masteryByTopic.get(t.topic)
                                             ?.total} mastered
                                     {:else}
-                                        —
+                                        -
                                     {/if}
                                 </span>
                                 <span class="topic-range">
