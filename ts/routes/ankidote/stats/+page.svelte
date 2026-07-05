@@ -291,7 +291,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
             <!-- Memory / Performance / Readiness, shown separately -->
             <section class="beakers">
-                {#each [{ key: "memory", label: "Memory", tint: "lime", shape: "round" as const, seed: 7314, pct: memoryPct, hasData: memoryHasData }, { key: "performance", label: "Performance", tint: "amber", shape: "vial" as const, seed: 5261, pct: performancePct, hasData: performanceHasData }, { key: "readiness", label: "Readiness", tint: "grass", shape: "round" as const, seed: 7314, pct: readinessPct, hasData: readinessReady }] as b (b.key)}
+                {#each [{ key: "memory", label: "Memory", tint: "lime", color: "var(--lime)", shape: "round" as const, seed: 7314, pct: memoryPct, hasData: memoryHasData }, { key: "performance", label: "Performance", tint: "amber", color: "var(--amber)", shape: "vial" as const, seed: 5261, pct: performancePct, hasData: performanceHasData }, { key: "readiness", label: "Readiness", tint: "grass", color: "var(--green)", shape: "round" as const, seed: 7314, pct: readinessPct, hasData: readinessReady }] as b (b.key)}
                     <div class="beaker-card {b.tint}">
                         <div class="beaker-head">
                             <span class="beaker-title">{b.label}</span>
@@ -299,7 +299,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
                         <div class="beaker-slot">
                             <Beaker
-                                tint="var(--green)"
+                                tint={b.color}
                                 seed={b.seed}
                                 shape={b.shape}
                                 fill={b.hasData ? b.pct : null}
