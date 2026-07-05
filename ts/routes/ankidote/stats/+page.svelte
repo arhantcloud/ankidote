@@ -291,7 +291,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
             <!-- Memory / Performance / Readiness, shown separately -->
             <section class="beakers">
-                {#each [{ key: "memory", label: "Memory", tint: "lime", color: "var(--lime)", seed: 4127, shape: "cylinder" as const, pct: memoryPct, hasData: memoryHasData }, { key: "performance", label: "Performance", tint: "amber", color: "var(--amber)", seed: 9613, shape: "flask" as const, pct: performancePct, hasData: performanceHasData }, { key: "readiness", label: "Readiness", tint: "grass", color: "var(--green)", seed: 2088, shape: "retort" as const, pct: readinessPct, hasData: readinessReady }] as b (b.key)}
+                {#each [{ key: "memory", label: "Memory", tint: "lime", shape: "round" as const, seed: 7314, pct: memoryPct, hasData: memoryHasData }, { key: "performance", label: "Performance", tint: "amber", shape: "vial" as const, seed: 5261, pct: performancePct, hasData: performanceHasData }, { key: "readiness", label: "Readiness", tint: "grass", shape: "round" as const, seed: 7314, pct: readinessPct, hasData: readinessReady }] as b (b.key)}
                     <div class="beaker-card {b.tint}">
                         <div class="beaker-head">
                             <span class="beaker-title">{b.label}</span>
@@ -299,23 +299,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
                         <div class="beaker-slot">
                             <Beaker
-                                tint={b.color}
+                                tint="var(--green)"
                                 seed={b.seed}
                                 shape={b.shape}
                                 fill={b.hasData ? b.pct : null}
-                            >
-                                {#if !b.hasData}
-                                    <div class="no-score">—</div>
-                                {:else if b.key === "readiness"}
-                                    <div class="pct">{baseline}</div>
-                                    <div class="pct-sub">projected</div>
-                                {:else}
-                                    <div class="pct">
-                                        {b.pct}
-                                        <em>%</em>
-                                    </div>
-                                {/if}
-                            </Beaker>
+                                width={104}
+                                height={134}
+                            />
                         </div>
 
                         {#if b.key === "readiness"}
@@ -612,36 +602,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         display: flex;
         justify-content: center;
         margin: 0.2rem 0 0.9rem;
-    }
-
-    .pct {
-        font-family: ad.$font-heading;
-        font-size: 1.7rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-
-        em {
-            font-family: ad.$font-mono;
-            font-style: normal;
-            font-size: 0.9rem;
-            color: ad.$muted;
-        }
-    }
-
-    .pct-sub {
-        font-family: ad.$font-mono;
-        font-size: 0.62rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: ad.$muted;
-    }
-
-    .no-score {
-        font-family: ad.$font-heading;
-        font-size: 2rem;
-        font-weight: 700;
-        color: ad.$muted;
-        opacity: 0.5;
     }
 
     .metric-line {
