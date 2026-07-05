@@ -142,6 +142,35 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
         goto("/ankidote/goal");
     }
+
+    // Let impatient users go straight to planning. We seed a deliberately wide,
+    // unmeasured baseline flagged `vague` so the goal screen can warn that the
+    // starting score is a placeholder until a real diagnostic is taken.
+    async function skipDiagnostic(): Promise<void> {
+        loading = true;
+        const diagnostic = {
+            low: 355,
+            high: 655,
+            baseline: 505,
+            answered: 0,
+            topicScores: [],
+            takenAt: Date.now(),
+            vague: true,
+        };
+        try {
+            sessionStorage.setItem(
+                "ankidote.diagnostic",
+                JSON.stringify(diagnostic),
+            );
+        } catch {
+            // sessionStorage may be unavailable; goal screen falls back.
+        }
+        // Deliberately do not push a score snapshot: a vague placeholder would
+        // pollute the My Brew progress trend, which should only reflect real
+        // measurements.
+        await saveAnkidoteState({ diagnostic });
+        goto("/ankidote/goal");
+    }
 </script>
 
 <Shell align="top" max="44rem">
@@ -173,6 +202,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <Button on:click={begin} disabled={loading}>
                     {loading ? "Preparing…" : "Start the diagnostic"}
                 </Button>
+                <div class="skip">
+                    <button
+                        class="skip-link"
+                        on:click={skipDiagnostic}
+                        disabled={loading}
+                    >
+                        Skip for now &rarr;
+                    </button>
+                    <p class="skip-warn">
+                        Heads up: skipping means your starting score is an
+                        <b>extremely vague estimate</b>, not a measurement. Your
+                        plan and predictions stay rough until you take the
+                        diagnostic &mdash; you can do it anytime.
+                    </p>
+                </div>
                 {#if errorMessage}
                     <p class="error">{errorMessage}</p>
                 {/if}
@@ -439,6 +483,48 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin-top: 1rem;
         color: ad.$danger;
         font-size: 0.9rem;
+    }
+
+    .skip {
+        margin-top: 1.1rem;
+    }
+
+    .skip-link {
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: ad.$font-mono;
+        font-size: 0.82rem;
+        letter-spacing: 0.03em;
+        color: ad.$muted;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover:not(:disabled) {
+            color: ad.$fg;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    .skip-warn {
+        margin: 0.55rem 0 0;
+        padding: 0.7rem 0.85rem;
+        border: 1px solid ad.$border;
+        border-left: 2px solid #e0a758;
+        border-radius: ad.$r-input;
+        background: rgba(0, 0, 0, 0.2);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: ad.$muted;
+
+        b {
+            color: #e0a758;
+            font-weight: 600;
+        }
     }
 
     .results {

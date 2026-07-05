@@ -14,6 +14,9 @@ export interface AnkidoteDiagnostic {
     answered: number;
     topicScores: unknown[];
     takenAt?: number;
+    // True when the user skipped the diagnostic: the baseline is an extremely
+    // vague placeholder rather than a measured estimate.
+    vague?: boolean;
 }
 
 export interface AnkidotePlan {

@@ -31,6 +31,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     const FALLBACK_BASELINE = 505;
     let baseline = FALLBACK_BASELINE;
     let hasDiagnostic = false;
+    // True when the diagnostic was skipped: the baseline is an unmeasured
+    // placeholder, so we warn and treat it like "no diagnostic" for the target.
+    let vague = false;
     // True once a saved plan has been rehydrated, so the diagnostic default
     // target below doesn't clobber the score the user already chose.
     let hasSavedPlan = false;
@@ -41,11 +44,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         baseline?: number;
         low?: number;
         high?: number;
+        vague?: boolean;
     }): boolean {
         if (typeof d?.baseline === "number") {
             baseline = d.baseline;
             diagLow = d.low ?? d.baseline;
             diagHigh = d.high ?? d.baseline;
+            vague = d.vague === true;
             hasDiagnostic = true;
             // Default the target a bit above the measured baseline, unless the
             // user already saved a plan with a chosen target.
@@ -142,7 +147,43 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         alreadyThere,
     } = est);
 
+    // Auto-tune the plan the first time it's built: switch on only as many
+    // habits as are needed to land the desired score inside the exam window,
+    // most-effective first. If even every habit isn't enough, they all stay on.
+    // Only the efficiency habits are toggleable — cards/problems set pace and
+    // are always required.
+    let autoTuned = false;
+
+    function autoEnableCommitments(): void {
+        const toggles = commitments.filter((c) => !c.rates);
+        for (const c of toggles) {
+            c.enabled = false;
+        }
+        const estimate = () =>
+            computePlan({ desiredScore, weeklyBudget, testDate, baseline, commitments });
+
+        let e = estimate();
+        if (!e.onTrack && !e.alreadyThere) {
+            const ordered = [...toggles].sort(
+                (a, b) => (b.efficiency ?? 0) - (a.efficiency ?? 0),
+            );
+            for (const c of ordered) {
+                c.enabled = true;
+                e = estimate();
+                if (e.onTrack || e.alreadyThere) {
+                    break;
+                }
+            }
+        }
+        commitments = commitments;
+    }
+
     function toPlan(): void {
+        // Respect an already-saved plan's choices; only tune a fresh plan, once.
+        if (!hasSavedPlan && !autoTuned) {
+            autoEnableCommitments();
+            autoTuned = true;
+        }
         phase = "plan";
     }
 
@@ -185,21 +226,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 already are, the less it costs.
             </p>
 
-            <div class="baseline" class:estimated={!hasDiagnostic}>
-                {#if hasDiagnostic}
+            <div class="baseline" class:estimated={!hasDiagnostic || vague}>
+                {#if hasDiagnostic && !vague}
                     <span class="baseline-label">Your diagnostic baseline</span>
                     <span class="baseline-value">
                         {baseline}
                         <em>({diagLow}–{diagHigh})</em>
                     </span>
                 {:else}
-                    <span class="baseline-label">No diagnostic yet</span>
+                    <span class="baseline-label">
+                        {vague ? "Diagnostic skipped" : "No diagnostic yet"}
+                    </span>
                     <span class="baseline-value">
                         ~{baseline}
-                        <em>estimate</em>
+                        <em>vague estimate</em>
                     </span>
                 {/if}
             </div>
+
+            {#if vague || !hasDiagnostic}
+                <p class="vague-warn">
+                    Your starting score is an <b>extremely vague estimate</b>, not
+                    a measurement, so your plan and predictions stay rough.
+                    <a href="/ankidote/diagnostic">Take the diagnostic</a>
+                    anytime to anchor your baseline and tighten every number.
+                </p>
+            {/if}
 
             <div class="field">
                 <div class="field-head">
@@ -505,6 +557,33 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             font-style: normal;
             font-weight: 400;
             color: ad.$muted;
+        }
+    }
+
+    .vague-warn {
+        margin: -0.9rem 0 1.6rem;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid ad.$border;
+        border-left: 2px solid #e0a758;
+        border-radius: ad.$r-input;
+        background: rgba(224, 167, 88, 0.08);
+        font-size: 0.84rem;
+        line-height: 1.5;
+        color: ad.$muted;
+
+        b {
+            color: #e0a758;
+            font-weight: 600;
+        }
+
+        a {
+            color: ad.$green;
+            font-weight: 600;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
 
