@@ -277,6 +277,184 @@ no key present, the app runs on its keyword baseline and still produces all thre
 
 ---
 
+# Ankidote Model Descriptions
+
+**Exam:** GMAT Focus Edition (total **205–805**, step 10; sections Quantitative, Verbal, Data
+Insights).
+
+Ankidote keeps the three questions the brief insists you separate apart, and models each on its own:
+
+| Model | Question it answers | Engine | Output |
+| --- | --- | --- | --- |
+| **Memory** | Can the student recall this fact *right now*? | Anki **FSRS** | Recall probability + mastery coverage |
+| **Performance** | Can the student answer a *new, exam-style* question that uses this fact? | **3PL IRT** ability estimate `θ` | Per-topic θ, SE → range |
+| **Readiness** | What score would the student get *today*, and how sure are we? | θ → 205–805 mapping with error propagation | Point estimate + 95% band + confidence |
+
+Each score is displayed with its **point estimate, likely range, exam coverage, a "how sure"
+indicator, and last-updated time**, and every score obeys a **give-up rule** that refuses to show a
+number when the evidence is too thin.
+
+---
+
+## 1. Memory model — FSRS
+
+**What it is.** Memory is answered by Anki's built-in **FSRS** (Free Spaced Repetition Scheduler),
+the mature, well-studied model Ankidote builds on rather than reinvents. FSRS models each card's
+memory as a *retrievability* `R(t)` that decays with time since the last review and is parameterized
+by a per-card *stability* and *difficulty* fit from the student's own review history.
+
+**What we read from it.**
+
+- **Recall probability** — FSRS's retrievability `R ∈ [0, 1]` is the chance the student recalls a
+  given card at this moment. This is the raw memory signal.
+- **Mastery coverage** — for the dashboard, a card counts as **mastered** once its scheduling
+  interval crosses a maturity threshold of **3 days** (`MASTERY_IVL = 3`, computed in
+  `rslib/src/ankidote/service.rs::get_ankidote_stats` via `prop:ivl<3`). Per topic we report
+  `mastered / total`, and overall we report the mastered fraction across all topic decks. This is the
+  aggregate "how much of the deck is genuinely retained" number.
+
+**Calibration (how we check it).** A memory model is only trustworthy if its probabilities are
+*calibrated*: when it says 80%, the student should recall about 80% of the time. We evaluate this on
+**held-out reviews** (reviews excluded from the fit):
+
+1. Bin predicted recall probability into deciles.
+2. For each bin, plot predicted probability vs. observed recall rate (the **reliability / calibration
+   curve** — the diagonal is perfect).
+3. Summarize with a proper scoring rule — **Brier score** (mean squared error of the probability) and
+   **log-loss** (cross-entropy). Lower is better; both punish confident-but-wrong predictions.
+
+**Give-up rule.** Memory is withheld until every exam topic has mastered cards *and* at least
+**`MIN_MEMORY_CARDS = 100`** cards are mastered across topics, so the number is never drawn from a
+thin sample.
+
+---
+
+## 2. Performance model — 3PL Item Response Theory
+
+**What it is.** Performance is the harder bridge: can the student answer a *new* exam-style question,
+including ones never seen? We estimate a latent **ability `θ`** from responses to real GMAT-style
+items using a **three-parameter logistic (3PL) IRT** model (`pylib/anki/ankidote/irt.py`, mirrored in
+`rslib/src/ankidote/engine.rs` so both platforms share the math).
+
+**The item model.** Each item `i` has three calibrated parameters — discrimination `a`, difficulty
+`b`, and guessing `c` — and the probability of a correct response at ability `θ` is the 3PL item
+characteristic curve:
+
+```
+P_i(θ) = c_i + (1 − c_i) / (1 + exp(−D · a_i · (θ − b_i)))
+```
+
+with logistic scaling constant `D = 1.702` (puts the logistic model on the normal-ogive scale).
+
+**Item bank.** Parameters come from a real, IRT-**calibrated** bank built offline from scraped GMAT
+questions (`gmat_scraper/` → `calibration/` with `py-irt`, reshaped by `build_app_bank.py`, which
+drops any item with fewer than three real choices). The live engine reads this bank directly
+(`rslib/src/ankidote/items.json`); items carry an authored reference explanation used later by the AI
+grader.
+
+**Ability estimation.** We fit `θ` by **maximum likelihood** over the response set
+(`estimate_theta`): a coarse-then-fine grid search across `θ ∈ [−4, 4]`. Responses may be dichotomous
+(right/wrong) or **graded** `g ∈ [0, 1]` for answer-choice ranking (partial credit), scored with the
+cross-entropy of the graded score against the item curve. All-correct / all-wrong patterns (whose MLE
+runs to ±∞) are pinned to a sensible bound nudged by the confidence-seeded prior.
+
+**Adaptive item selection.** The diagnostic is a CAT: the next item is the one with maximum **Fisher
+information** at the current `θ`,
+
+```
+I_i(θ) = (D · a_i)² · ((P_i − c_i)/(1 − c_i))² · (1 − P_i)/P_i
+```
+
+so each question is chosen to tighten the estimate fastest, keeping the test short.
+
+**Uncertainty.** The **standard error** of the ability estimate is the inverse root of the test
+information, clamped so an empty/near-empty set cannot produce an absurd band:
+
+```
+SE(θ) = min( 1 / sqrt( Σ_i I_i(θ) ),  MAX_SE = 1.5 )
+```
+
+**Honesty guard (give-up / anti-peek).** If a learner reveals the answer or signals "don't know," the
+response is scored as **incorrect** (`0.0`) regardless of the choice submitted — a revealed card can
+never lift ability. Performance is withheld until every topic has problems completed *and* at least
+**`MIN_PERFORMANCE_PROBLEMS = 100`** problems are finished.
+
+**Evaluation.** Performance is validated as a **classifier of held-out exam-style questions**
+(predict right/wrong from `θ`, item difficulty, timing, and coverage) and reported as accuracy on the
+held-out set. The **paraphrase test** (30 cards × 2 reworded questions) compares card recall to
+accuracy on the rewordings and reports the gap, proving the performance model is a real bridge, not a
+copy of the memory model.
+
+---
+
+## 3. Readiness — score-range methodology
+
+**What it is.** Readiness turns ability into a **projected GMAT total score with a range and a
+confidence note** (`pylib/anki/ankidote/scores.py`). It is never shown as a single naked percentage.
+
+**θ → score mapping.** A linear map places the standard-normal ability scale onto the GMAT total
+scale, then clamps and snaps to the real step of 10:
+
+```
+raw    = SCORE_MID + θ · SCORE_PER_THETA        # 505 + 100·θ
+score  = clamp(raw, 205, 805) snapped to nearest 10
+```
+
+The mapping is deliberately isolated in `scores.py` (behind `theta_to_score`) so the v1 linear map can
+be swapped for a calibrated lookup table without touching the engine or the wire protocol.
+
+**The range (this is the point).** We report a **95% band**, not one number, by pushing the ability
+standard error through the same mapping:
+
+```
+low  = theta_to_score(θ − Z · SE)
+high = theta_to_score(θ + Z · SE)          # Z = 1.96
+```
+
+So the band widens honestly as uncertainty grows and tightens as evidence accumulates. A typical
+display reads: **"Projected 655, likely 605–705, confidence low."**
+
+**Combining topics.** The overall estimate is a **weight-weighted mean** of per-topic abilities, with
+the standard error of that weighted mean propagated assuming topic independence (`combine_topics`):
+
+```
+θ_overall  = Σ (w_t · θ_t) / Σ w_t
+SE_overall = sqrt( Σ (w_t / Σw)² · SE_t² )
+```
+
+Topic weights come from each topic's share of the exam (section weight split across its topics), so a
+heavily-weighted weak topic moves the projection more than a light one. (Cross-topic ability
+correlation is a known future refinement; v1 treats topics as independent.)
+
+**Confidence.** The "how sure" indicator is a function of **topic coverage** and **graded-review
+volume** (higher coverage + more reviews → higher confidence), shown alongside the range.
+
+**Give-up rule (readiness abstains).** Readiness shows **no score** until all of the following hold:
+
+- at least **`MIN_REVIEWS = 200`** graded reviews on record,
+- at least **`MIN_COVERAGE = 50%`** of exam topics covered,
+- the Memory and Performance give-up rules are both satisfied (every topic has ≥100 mastered cards and
+  ≥100 completed problems).
+
+Until then the dashboard states *what evidence is still missing* instead of guessing. A confident
+number without the evidence, range, coverage, and give-up rule behind it is not a prediction — so
+Ankidote refuses to print one.
+
+---
+
+## Where the code lives
+
+| Piece | File |
+| --- | --- |
+| 3PL curve, Fisher information, MLE θ, SE | `pylib/anki/ankidote/irt.py` |
+| Shared Rust IRT engine (same math) | `rslib/src/ankidote/engine.rs` |
+| θ → score, 95% band, topic combination, staleness | `pylib/anki/ankidote/scores.py` |
+| Calibrated item bank (live) | `rslib/src/ankidote/items.json` |
+| Offline calibration pipeline | `gmat_scraper/calibration/` |
+| Memory mastery + stats | `rslib/src/ankidote/service.rs` (`get_ankidote_stats`) |
+| Dashboard (three ranged scores) | `ts/routes/ankidote/stats/+page.svelte` |
+
+
 ## Credits & License
 
 Ankidote is a fork of **[Anki](https://apps.ankiweb.net)** by Ankitects Pty Ltd and contributors —
