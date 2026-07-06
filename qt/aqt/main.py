@@ -1453,6 +1453,9 @@ title="{}" {}>{}</button>""".format(
     def onAnkidoteStats(self) -> None:
         self.moveToState("ankidote", "ankidote/stats")
 
+    def onAnkidoteBrew(self) -> None:
+        self.moveToState("ankidote", "ankidote/brew")
+
     def onPrefs(self) -> None:
         aqt.dialogs.open("Preferences", self)
 

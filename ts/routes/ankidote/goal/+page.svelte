@@ -141,6 +141,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         return d.toISOString().slice(0, 10);
     }
 
+    function todayStr(): string {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 10);
+    }
+    const minDate = todayStr();
+
     function round1(n: number): number {
         return Math.round(n * 10) / 10;
     }
@@ -171,32 +178,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     $: revealLow = hasDiagnostic ? diagLow : Math.max(205, baseline - 60);
     $: revealHigh = hasDiagnostic ? diagHigh : Math.min(805, baseline + 60);
 
-    // Auto-tune the plan the first time it's built: switch on only as many
-    // habits as are needed to land the desired score inside the exam window,
-    // most-effective first. If even every habit isn't enough, they all stay on.
-    // Only the efficiency habits are toggleable — cards/problems set pace and
-    // are always required.
-    let autoTuned = false;
+    // The craft walkthrough starts from the bare baseline: no efficiency habits
+    // on, and cards/problems at their default pace. That way the opening total
+    // time / predicted score reflect "nothing added yet", and every ingredient
+    // the user pours in visibly moves those numbers.
+    let craftReset = false;
 
-    function autoEnableCommitments(): void {
-        const toggles = commitments.filter((c) => !c.rates);
-        for (const c of toggles) {
-            c.enabled = false;
-        }
-        const estimate = () =>
-            computePlan({ desiredScore, weeklyBudget, testDate, baseline, commitments });
-
-        let e = estimate();
-        if (!e.onTrack && !e.alreadyThere) {
-            const ordered = [...toggles].sort(
-                (a, b) => (b.efficiency ?? 0) - (a.efficiency ?? 0),
-            );
-            for (const c of ordered) {
-                c.enabled = true;
-                e = estimate();
-                if (e.onTrack || e.alreadyThere) {
-                    break;
-                }
+    function resetForCraft(): void {
+        for (const c of commitments) {
+            if (c.rates) {
+                c.selected = "focused";
+            } else {
+                c.enabled = false;
             }
         }
         commitments = commitments;
@@ -233,18 +226,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     // The brew's fill = how comfortably the plan lands inside the exam window.
     // Adding an ingredient shortens the time needed, so the level visibly rises.
-    $: brewFill = alreadyThere
-        ? 100
-        : weeksNeeded <= 0
-          ? 100
-          : Math.max(5, Math.min(100, Math.round((weeksLeft / weeksNeeded) * 100)));
+    // Kept in a high band (90–100%) so the surface always sits up at the pour
+    // point — the drops land in the liquid, not into empty glass below it.
+    $: brewFill =
+        alreadyThere || weeksNeeded <= 0
+            ? 100
+            : Math.max(90, Math.min(100, Math.round(90 + (weeksLeft / weeksNeeded) * 10)));
 
     function startCraft(): void {
-        // Tune a fresh plan to the minimal on-track set before the walkthrough,
-        // so the suggested state for each ingredient reflects what's needed.
-        if (!hasSavedPlan && !autoTuned) {
-            autoEnableCommitments();
-            autoTuned = true;
+        // Begin from the bare baseline (nothing added, default pace), once.
+        if (!hasSavedPlan && !craftReset) {
+            resetForCraft();
+            craftReset = true;
         }
         walkIndex = 0;
         anim = null;
@@ -266,9 +259,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
         current.enabled = true;
         commitments = commitments;
-        // Tint the brew toward the ingredient just added (animated crossfade).
-        brewTint = curColor;
         anim = "pour";
+        // Hold the brew's colour until the stream actually lands in it, then
+        // crossfade toward the freshly-added ingredient. Capture the colour now
+        // since `curColor` moves on to the next ingredient once we advance.
+        const landed = curColor;
+        setTimeout(() => (brewTint = landed), 430);
         setTimeout(advance, 900);
     }
 
@@ -287,7 +283,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             return;
         }
         if (walkIndex === 0) {
-            phase = "date";
+            phase = "budget";
         } else {
             walkIndex -= 1;
         }
@@ -324,11 +320,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <Shell align="top" max="48rem">
     {#if phase !== "plan"}
         <div class="wizard">
-            {#if phase !== "reveal"}
+            {#if phase !== "reveal" && phase !== "walk"}
                 <div class="hud" transition:fade={{ duration: 250 }}>
                     <div class="hud-item">
                         <span class="hud-label">Total time</span>
                         <span class="hud-value">{totalHours}<em>hrs</em></span>
+                    </div>
+                    <div class="hud-sep"></div>
+                    <div class="hud-item">
+                        <span class="hud-label">Weeks @ {weeklyBudget} hrs/wk</span>
+                        <span class="hud-value">{weeksNeeded}<em>wks</em></span>
                     </div>
                     <div class="hud-sep"></div>
                     <div class="hud-item">
@@ -360,7 +361,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             let's craft the antidote that moves it.
                         {/if}
                     </p>
-                    <Button on:click={() => (phase = "score")}>
+                    <Button on:click={() => (phase = "date")}>
                         Set my target &rarr;
                     </Button>
                 </div>
@@ -385,7 +386,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         <span>805</span>
                     </div>
                     <div class="stage-nav">
-                        <button class="ghost" on:click={() => (phase = "reveal")}>
+                        <button class="ghost" on:click={() => (phase = "date")}>
                             &larr; back
                         </button>
                         <Button on:click={() => (phase = "budget")}>Next &rarr;</Button>
@@ -416,7 +417,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         <button class="ghost" on:click={() => (phase = "score")}>
                             &larr; back
                         </button>
-                        <Button on:click={() => (phase = "date")}>Next &rarr;</Button>
+                        <Button on:click={startCraft}>
+                            Start crafting the brew &rarr;
+                        </Button>
                     </div>
                 </div>
             {:else if phase === "date"}
@@ -425,32 +428,59 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     in:fly={{ y: 26, duration: 460, easing: quintOut }}
                 >
                     <p class="stage-eyebrow">Your exam date</p>
-                    <input class="big-date" type="date" bind:value={testDate} />
+                    <input
+                        class="big-date"
+                        type="date"
+                        min={minDate}
+                        bind:value={testDate}
+                    />
                     <p class="stage-pct">
                         {weeksLeft}
                         {weeksLeft === 1 ? "week" : "weeks"} away
                     </p>
                     <div class="stage-nav">
-                        <button class="ghost" on:click={() => (phase = "budget")}>
+                        <button class="ghost" on:click={() => (phase = "reveal")}>
                             &larr; back
                         </button>
-                        <Button on:click={startCraft}>
-                            Start crafting the brew &rarr;
-                        </Button>
+                        <Button on:click={() => (phase = "score")}>Next &rarr;</Button>
                     </div>
                 </div>
             {:else if phase === "walk" && current}
                 <div class="stage craft" in:fade={{ duration: 260 }}>
-                    <div class="craft-progress">
-                        Ingredient {walkIndex + 1} of {walkOrder.length}
-                    </div>
-                    <div class="ing-info">
-                        <span class="ing-name">{current.name}</span>
-                        <p class="ing-enforce">{current.enforce}</p>
-                    </div>
+                    {#key walkIndex}
+                        <div class="ing-info" in:fade={{ duration: 300 }}>
+                            <span
+                                class="ing-name"
+                                style="color: color-mix(in srgb, {curColor} 45%, #ffffff);"
+                            >
+                                {current.name}
+                            </span>
+                            <p class="ing-enforce">{current.enforce}</p>
+                        </div>
+                    {/key}
 
-                    <div class="pour-zone">
-                        <div class="ing-slot">
+                    <div class="craft-main">
+                        <div class="hud hud-craft">
+                            <div class="hud-item">
+                                <span class="hud-label">Total time</span>
+                                <span class="hud-value">{totalHours}<em>hrs</em></span>
+                            </div>
+                            <div class="hud-rule"></div>
+                            <div class="hud-item">
+                                <span class="hud-label">Weeks @ {weeklyBudget} hrs/wk</span>
+                                <span class="hud-value">{weeksNeeded}<em>wks</em></span>
+                            </div>
+                            <div class="hud-rule"></div>
+                            <div class="hud-item">
+                                <span class="hud-label">Predicted by exam</span>
+                                <span class="hud-value accent">
+                                    {predictedLow}&ndash;{predictedHigh}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pour-zone">
+                            <div class="ing-slot">
                             {#key walkIndex}
                                 <div
                                     class="ing-vial {anim ?? ''}"
@@ -484,8 +514,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                 width={186}
                                 height={224}
                                 seed={4242}
+                                ticks={false}
                             />
                             <span class="brew-label">the brew</span>
+                        </div>
                         </div>
                     </div>
 
@@ -522,27 +554,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             </Button>
                         </div>
                     {:else}
-                        <p class="ing-impact">
-                            {#if current.enabled}
-                                Keeps
-                                <b>{round1(gapHours * (current.efficiency ?? 0))} hrs</b>
-                                off your total.
-                            {:else}
-                                Leaving it out adds
-                                <b>{round1(gapHours * (current.efficiency ?? 0))} hrs</b>.
-                            {/if}
-                        </p>
                         <div class="ing-actions two">
-                            <button
-                                class="toss-btn"
-                                on:click={dropCurrent}
-                                disabled={!!anim}
-                            >
-                                Leave it out
-                            </button>
-                            <Button on:click={keepCurrent} disabled={!!anim}>
-                                Add to the brew
-                            </Button>
+                            <div class="act">
+                                <button
+                                    class="toss-btn"
+                                    on:click={dropCurrent}
+                                    disabled={!!anim}
+                                >
+                                    Leave it out
+                                </button>
+                                <span class="delta cost">
+                                    +{round1(gapHours * (current.efficiency ?? 0))} hrs
+                                </span>
+                            </div>
+                            <div class="act">
+                                <Button on:click={keepCurrent} disabled={!!anim}>
+                                    Add to the brew
+                                </Button>
+                                <span class="delta save">
+                                    &minus;{round1(gapHours * (current.efficiency ?? 0))} hrs
+                                </span>
+                            </div>
                         </div>
                         <button
                             class="ghost small"
@@ -563,12 +595,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {:else}
                 <h1>{baseline} &rarr; {desiredScore} in {totalHours} hours.</h1>
             {/if}
-            <p class="sub compact">
-                Hours are measured from your diagnostic. Kept habits shave hours off;
-                cards &amp; problems set your pace and ANTIcipated score. Tap
-                <span class="inline-i">i</span>
-                for the why.
-            </p>
 
             <div class="stats">
                 <div class="stat">
@@ -603,20 +629,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 </div>
             </div>
 
-            <p class="verdict" class:warn={!onTrack}>
-                {#if alreadyThere}
-                    Your diagnostic already meets this target, so 0 hours are needed. Aim
-                    higher to build a plan.
-                {:else if onTrack}
-                    You're on track. At {weeklyBudget} hrs/week you'll close the gap in ~{weeksNeeded}
-                    {weeksNeeded === 1 ? "week" : "weeks"}, inside your {weeksLeft} week
-                    window.
-                {:else}
-                    You're behind. {totalHours} hrs at {weeklyBudget} hrs/week takes ~{weeksNeeded}
-                    weeks, past your {weeksLeft} week window. Add weekly time, keep more
-                    habits, or push the date.
-                {/if}
-            </p>
+            {#if !onTrack && !alreadyThere}
+                <p class="verdict warn">
+                    You're behind. ~{weeksNeeded} wks needed vs your {weeksLeft} wk window.
+                    Add more toggles or hours per week to catch up.
+                </p>
+            {/if}
 
             <div class="quota-row">
                 {#each quotaCommitments as c (c.id)}
@@ -656,7 +674,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                             {r.rate}
                                             <em>{c.unit}</em>
                                         </span>
-                                        <span class="rate-env">{r.env}</span>
                                     </button>
                                 {/each}
                             </div>
@@ -727,35 +744,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 1rem 0 0.8rem;
-    }
-
-    .sub {
-        font-size: 1rem;
-        line-height: 1.6;
-        color: ad.$muted;
-        margin: 0 0 1.8rem;
-
-        &.compact {
-            font-size: 0.9rem;
-            margin: 0 0 1rem;
-        }
-    }
-
-    .inline-i {
-        box-sizing: border-box;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.15rem;
-        height: 1.15rem;
-        aspect-ratio: 1;
-        padding: 0;
-        border-radius: 50%;
-        border: 1px solid ad.$border;
-        font-family: ad.$font-mono;
-        font-size: 0.68rem;
-        font-weight: 500;
-        vertical-align: middle;
     }
 
     /* --- craft wizard --- */
@@ -954,12 +942,56 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         gap: 0.7rem;
     }
 
-    .craft-progress {
-        font-family: ad.$font-mono;
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: ad.$muted;
+
+    // Walk step: the metrics tile sits to the left of the brew.
+    .craft-main {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 1.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hud-craft {
+        position: static;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        min-width: 210px;
+        margin-bottom: 40px;
+        padding: 1.4rem 1.6rem;
+        border-radius: 14px;
+        text-align: left;
+    }
+
+    .hud-craft .hud-item {
+        align-items: flex-start;
+        text-align: left;
+        padding: 0.7rem 0;
+        gap: 0.35rem;
+    }
+
+    .hud-craft .hud-label {
+        font-size: 0.76rem;
+    }
+
+    .hud-craft .hud-value {
+        font-size: 2.5rem;
+    }
+
+    .hud-craft .hud-value.accent {
+        font-size: 2rem;
+    }
+
+    .hud-craft .hud-value em {
+        font-size: 0.95rem;
+        margin-left: 0.3rem;
+    }
+
+    .hud-rule {
+        height: 1px;
+        background: ad.$border;
+        margin: 0.2rem 0;
     }
 
     .ing-info {
@@ -975,10 +1007,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .ing-enforce {
-        font-size: 0.95rem;
-        line-height: 1.55;
-        color: ad.$muted;
-        margin: 0.4rem 0 0;
+        font-size: clamp(1.15rem, 3vw, 1.5rem);
+        line-height: 1.5;
+        font-weight: 600;
+        color: ad.$fg;
+        margin: 0.6rem 0 0;
     }
 
     .pour-zone {
@@ -1040,14 +1073,24 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin-top: 0.3rem;
     }
 
-    .ing-impact {
-        font-size: 0.92rem;
-        color: ad.$muted;
-        margin: 0;
+    .act {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+    }
 
-        b {
+    .delta {
+        font-family: ad.$font-mono;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+
+        &.save {
             color: ad.$green;
-            font-weight: 700;
+        }
+        &.cost {
+            color: #e0a758;
         }
     }
 
@@ -1248,17 +1291,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     .verdict {
-        font-size: 0.88rem;
-        line-height: 1.5;
-        padding: 0.65rem 0.95rem;
+        font-size: 1.05rem;
+        line-height: 1.45;
+        font-weight: 600;
+        padding: 0.9rem 1.1rem;
         border-radius: ad.$r-input;
         border: 1px solid rgba(34, 197, 94, 0.45);
         background: ad.$green-wash;
         margin: 0 0 1.2rem;
 
         &.warn {
-            border-color: rgba(217, 164, 65, 0.6);
-            background: rgba(217, 164, 65, 0.12);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.6);
+            background: rgba(239, 68, 68, 0.12);
         }
     }
 

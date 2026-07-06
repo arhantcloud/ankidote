@@ -189,6 +189,7 @@ class DeckBrowser:
         gui_hooks.deck_browser_will_render_content(self, content)
         self.web.stdHtml(
             self._v1_upgrade_message(data.sched_upgrade_required)
+            + self._render_coverage()
             + self._body % content.__dict__,
             css=["css/deckbrowser.css"],
             js=[
@@ -210,6 +211,104 @@ class DeckBrowser:
         return '<div id="studiedToday"><span>{}</span></div>'.format(
             self._render_data.studied_today
         )
+
+    # Ankidote coverage map
+    ##########################################################################
+
+    # Card-count milestones: below MIN a topic is under-covered; at FULL it is
+    # fully stocked. The score is calibrated so every topic at 15 -> ~55/100,
+    # every topic at 30 -> ~75/100, every topic at 50+ -> 100/100.
+    _COVERAGE_MIN = 15
+    _COVERAGE_FULL = 50
+
+    @classmethod
+    def _coverage_topic_score(cls, count: int) -> float:
+        """Per-topic contribution to the coverage score, in [0, 1]."""
+        if count <= 0:
+            return 0.0
+        if count <= 15:
+            return 0.55 * (count / 15)
+        if count <= 30:
+            return 0.55 + 0.20 * ((count - 15) / 15)
+        if count <= 50:
+            return 0.75 + 0.25 * ((count - 30) / 20)
+        return 1.0
+
+    def _render_coverage(self) -> str:
+        """A GMAT topic coverage heatmap for the Ankidote topic decks.
+
+        Renders nothing unless the topic decks exist and hold at least one card,
+        so a plain Anki collection is unaffected.
+        """
+        try:
+            from anki.ankidote import decks as ad_decks
+            from anki.ankidote import topics as ad_topics
+        except Exception:
+            return ""
+
+        rows: list[tuple[str, int]] = []
+        for topic in ad_decks.all_topics():
+            deck_name = ad_topics.deck_name(topic)
+            try:
+                count = len(self.mw.col.find_cards(f'deck:"{deck_name}"'))
+            except Exception:
+                count = 0
+            rows.append((topic, count))
+
+        if not rows or sum(c for _, c in rows) == 0:
+            return ""
+
+        low = self._COVERAGE_MIN
+        full = self._COVERAGE_FULL
+
+        def color(count: int) -> str:
+            if count < low:
+                return "#f0616d"  # red — under-covered
+            if count < full:
+                return "#e0a758"  # amber — building
+            return "#22c55e"  # green — fully stocked
+
+        score = round(
+            sum(self._coverage_topic_score(c) for _, c in rows) / len(rows) * 100
+        )
+        score_color = (
+            "#22c55e" if score >= 75 else "#e0a758" if score >= 55 else "#f0616d"
+        )
+        covered = sum(1 for _, c in rows if c >= low)
+        stocked = sum(1 for _, c in rows if c >= full)
+
+        tiles = ""
+        for topic, count in sorted(rows, key=lambda t: (t[1], t[0])):
+            col = color(count)
+            pct = max(4, min(100, round(count / full * 100)))
+            tiles += f"""
+        <div style="border:1px solid {col}55;background:{col}14;border-radius:10px;padding:8px 10px;text-align:start;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px;">
+            <span style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{html.escape(topic)}</span>
+            <span style="font-weight:700;font-size:16px;color:{col};">{count}</span>
+          </div>
+          <div style="height:5px;border-radius:999px;background:rgba(128,128,128,0.25);margin-top:6px;overflow:hidden;">
+            <div style="height:100%;width:{pct}%;background:{col};border-radius:999px;"></div>
+          </div>
+        </div>"""
+
+        return f"""
+<div style="max-width:820px;margin:0 auto 18px;text-align:start;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+    <div style="font-weight:700;font-size:15px;">GMAT topic coverage</div>
+    <div style="font-size:13px;opacity:0.8;">
+      <span style="color:{score_color};font-weight:700;font-size:18px;">{score}</span>/100
+      &nbsp;&middot;&nbsp; {covered}/{len(rows)} topics &ge;{low} &nbsp;&middot;&nbsp; {stocked}/{len(rows)} &ge;{full}
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">{tiles}
+  </div>
+  <div style="margin-top:8px;font-size:11px;opacity:0.7;">
+    <span style="color:#f0616d;">&#9632;</span> under {low}
+    &nbsp; <span style="color:#e0a758;">&#9632;</span> {low}&ndash;{full - 1}
+    &nbsp; <span style="color:#22c55e;">&#9632;</span> {full}+
+  </div>
+</div>"""
 
     def _renderDeckTree(self, top: DeckTreeNode) -> str:
         buf = """

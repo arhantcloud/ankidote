@@ -172,48 +172,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         coveragePct >= MIN_COVERAGE &&
         memoryHasData &&
         performanceHasData;
-    function confidenceLevel(coverage: number, reviews: number): string {
-        if (coverage >= 80 && reviews >= 500) {
-            return "high";
-        }
-        if (coverage >= 60 && reviews >= 300) {
-            return "medium";
-        }
-        return "low";
-    }
-    $: confidence = confidenceLevel(coveragePct, gradedReviews);
-
     $: masteryByTopic = new Map(topicMastery.map((m) => [m.topic, m]));
 
     $: updated = relTime(diagnostic?.takenAt);
-
-    $: readinessReasons = [
-        `Anchored to your diagnostic (${answered} adaptive questions)`,
-        `Covers ${coveragePct}% of exam topics so far`,
-        `${gradedReviews} graded reviews on record`,
-    ];
-    $: performanceReasons = performanceHasData
-        ? [
-              `${perfCorrect}/${perfAnswered} exam-style questions correct`,
-              `${problemsAnswered} from practice, ${diagAnswered} from diagnostic`,
-          ]
-        : [
-              `${perfAnswered}/${MIN_PERFORMANCE_PROBLEMS} problems completed`,
-              allTopicsHaveProblems
-                  ? "All topics have problems"
-                  : "Some topics still need problems",
-          ];
-    $: memoryReasons = memoryHasData
-        ? [
-              `${memory!.masteredCards} of ${memory!.totalCards} topic cards mastered`,
-              `${memory!.reviews} graded reviews in Anki`,
-          ]
-        : [
-              `${cardsCompleted}/${MIN_MEMORY_CARDS} cards mastered`,
-              allTopicsHaveCards
-                  ? "All topics have cards"
-                  : "Some topics still need cards",
-          ];
 </script>
 
 <Shell align="top" max="64rem">
@@ -224,6 +185,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <h1>Where you stand</h1>
             </div>
             <div class="top-actions">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    on:click={() => goto("/ankidote/diagnostic")}
+                >
+                    Retake diagnostic
+                </Button>
                 {#if hasDiag && loggedIn}
                     <Button size="sm" on:click={() => goto("/ankidote/loop")}>
                         Start studying &rarr;
@@ -233,22 +201,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         Log in to AnkiWeb to start studying
                     </span>
                 {/if}
-                {#if plan}
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        on:click={() => goto("/ankidote/brew")}
-                    >
-                        My Brew
-                    </Button>
-                {/if}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    on:click={() => goto("/ankidote/diagnostic")}
-                >
-                    Retake diagnostic
-                </Button>
             </div>
         </header>
 
@@ -315,62 +267,21 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                     · likely
                                     <b>{diagnostic?.low}&ndash;{diagnostic?.high}</b>
                                 </p>
-                                <p class="metric-meta">
-                                    Confidence: <b class="conf {confidence}">
-                                        {confidence}
-                                    </b>
-                                    · {coveragePct}% covered · {updated}
-                                </p>
-                                <ul class="reasons">
-                                    {#each readinessReasons as r}
-                                        <li>{r}</li>
-                                    {/each}
-                                </ul>
                             {:else}
-                                <p class="metric-line withheld">Not enough data yet.</p>
-                                <p class="metric-meta">
-                                    {coveragePct}% covered · {gradedReviews} reviews
-                                </p>
-                                <p class="rule">{GIVE_UP_RULE}</p>
+                                <p class="requirement">{GIVE_UP_RULE}</p>
                             {/if}
                         {:else if b.key === "memory"}
-                            <p class="metric-line">
-                                How much of your topic decks is mastered.
-                            </p>
-                            {#if memoryHasData}
-                                <p class="metric-meta">
-                                    Mature cards across topic decks
-                                </p>
-                            {:else}
-                                <p class="metric-meta withheld">
+                            {#if !memoryHasData}
+                                <p class="requirement">
                                     Master {MIN_MEMORY_CARDS}+ cards across every topic
                                     to unlock.
                                 </p>
                             {/if}
-                            <ul class="reasons">
-                                {#each memoryReasons as r}
-                                    <li>{r}</li>
-                                {/each}
-                            </ul>
-                        {:else}
-                            <p class="metric-line">
-                                Chance you answer an exam style question right.
+                        {:else if !performanceHasData}
+                            <p class="requirement">
+                                Finish {MIN_PERFORMANCE_PROBLEMS}+ problems across every
+                                topic to unlock.
                             </p>
-                            {#if performanceHasData}
-                                <p class="metric-meta">
-                                    From {perfAnswered} problems completed · {updated}
-                                </p>
-                            {:else}
-                                <p class="metric-meta withheld">
-                                    Finish {MIN_PERFORMANCE_PROBLEMS}+ problems across
-                                    every topic to unlock.
-                                </p>
-                            {/if}
-                            <ul class="reasons">
-                                {#each performanceReasons as r}
-                                    <li>{r}</li>
-                                {/each}
-                            </ul>
                         {/if}
                     </div>
                 {/each}
@@ -614,23 +525,15 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         b {
             color: ad.$green;
         }
-
-        &.withheld {
-            font-weight: 600;
-            color: ad.$muted;
-        }
     }
 
-    .metric-meta {
-        font-family: ad.$font-mono;
-        font-size: 0.7rem;
+    .requirement {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.45;
         color: ad.$muted;
         text-align: center;
-        margin: 0 0 0.5rem;
-
-        &.withheld {
-            color: ad.$muted;
-        }
+        margin: 0;
     }
 
     .empty-note {
@@ -638,52 +541,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         line-height: 1.5;
         color: ad.$muted;
         margin: 0;
-    }
-
-    .conf {
-        text-transform: capitalize;
-
-        &.low {
-            color: var(--amber);
-        }
-        &.medium {
-            color: var(--lime);
-        }
-        &.high {
-            color: var(--green);
-        }
-    }
-
-    .reasons {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        li {
-            font-family: ad.$font-mono;
-            font-size: 0.7rem;
-            color: ad.$muted;
-            padding: 0.18rem 0 0.18rem 0.9rem;
-            position: relative;
-
-            &::before {
-                content: "›";
-                position: absolute;
-                left: 0.2rem;
-                color: var(--tint);
-                font-weight: 700;
-            }
-        }
-    }
-
-    .rule {
-        font-size: 0.72rem;
-        line-height: 1.4;
-        color: ad.$muted;
-        border-top: 1px dashed ad.$border;
-        padding-top: 0.5rem;
-        margin: 0.3rem 0 0;
-        font-style: italic;
     }
 
     /* --- two columns --- */

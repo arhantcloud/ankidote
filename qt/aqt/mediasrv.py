@@ -972,7 +972,7 @@ def _ankidote_loop_topic_payload(
             baseline = immature
         delta = baseline - immature
         remaining = max(0, _ANKIDOTE_MASTERY_DELTA - delta)
-        payload["problemsUnlocked"] = bool(done and remaining == 0)
+        payload["problemsUnlocked"] = bool(remaining == 0)
         payload["problemsDoneForDay"] = bool(done)
         payload["problemsRemaining"] = remaining
         payload["masteryGained"] = delta
@@ -1013,6 +1013,11 @@ def _ankidote_common_fields(state: dict) -> dict:
 
     # Antidote vial + weekly problem quota (throughput pace, PRD §3.2).
     fields["planVial"] = plan_projection.vial_state(state)
+    # Companion flashcards-per-hour vial (reviews done this week vs. the pace
+    # target), shown alongside the problems vial.
+    col = aqt.mw.col
+    if col is not None:
+        fields["cardsVial"] = plan_projection.cards_vial_state(col, state)
     if flags.get("problems"):
         fields["quota"] = plan_projection.quota(state)
 

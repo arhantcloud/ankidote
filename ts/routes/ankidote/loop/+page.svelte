@@ -11,7 +11,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { bridgeCommand, bridgeCommandsAvailable } from "@tslib/bridgecommand";
-    import { sortDecks as sortDecksRpc } from "../engine";
     import { Shell, Card, Badge, Button, PlanVial } from "../_lib";
     import type { AnkidotePlanVial } from "../state";
 
@@ -56,15 +55,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         question?: Question | null;
         commitments?: Record<string, boolean>;
         planVial?: AnkidotePlanVial;
+        cardsVial?: AnkidotePlanVial;
         checkinDue?: boolean;
         checkinBlocking?: boolean;
     }
 
     let state: LoopState = { phase: "empty" };
     let loading = false;
-    let sorting = false;
     let errorMessage = "";
-    let sortNote = "";
     let gateMessage = "";
 
     // Problem-solving and the mandatory concept lesson each live on their own
@@ -146,21 +144,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     const anotherTopic = (topic?: string) =>
         run("ankidoteLoopAnother", topic ? { topic } : {});
 
-    async function sortDecks(): Promise<void> {
-        sorting = true;
-        errorMessage = "";
-        sortNote = "";
-        try {
-            const total = await sortDecksRpc();
-            sortNote = `Sorted ${total} cards into topic decks.`;
-            await refresh();
-        } catch (err) {
-            errorMessage = `${err}`;
-        } finally {
-            sorting = false;
-        }
-    }
-
     function onProblemsClick(): void {
         if (!state.problemsUnlocked) {
             gateMessage = problemsHint(state);
@@ -171,9 +154,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
 
     function problemsHint(s: LoopState): string {
-        if (!s.problemsDoneForDay) {
-            return "Study more cards first. Finish today's cards for this deck, then keep maturing them.";
-        }
         const n = s.problemsRemaining ?? 0;
         return `Study more cards first. ${n} more card${
             n === 1 ? "" : "s"
@@ -238,24 +218,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     <header class="top">
         <div>
             <Badge variant="green" dot>Study loop</Badge>
-            <h1>One weak topic at a time</h1>
-        </div>
-        <div class="top-actions">
-            <Button variant="ghost" size="sm" on:click={sortDecks} disabled={sorting}>
-                {sorting ? "Sorting…" : "Sort decks by topic"}
-            </Button>
-            <Button variant="ghost" size="sm" on:click={() => goto("/ankidote/brew")}>
-                My Brew
-            </Button>
-            <Button variant="ghost" size="sm" on:click={() => goto("/ankidote/stats")}>
-                Dashboard
-            </Button>
+            <h1>{state.topic ?? ""}</h1>
         </div>
     </header>
-
-    {#if sortNote}
-        <p class="note">{sortNote}</p>
-    {/if}
 
     {#if state.planVial && state.phase !== "login_required" && state.phase !== "empty"}
         <PlanVial vial={state.planVial} />
@@ -417,57 +382,40 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <span class="range-value">{state.target}</span>
                 </div>
             </div>
-            <p class="why">
-                Picked because it sits furthest below your target once weighted by how
-                much it's worth on the GMAT.
-            </p>
         </Card>
 
         {#if state.phase === "cards"}
             <Card>
-                <div class="step">
-                    <span class="step-num">1</span>
-                    <div class="step-body">
-                        <h3>Study flashcards</h3>
-                        <p>
-                            Cards come from your Anki deck
-                            <code>{state.deck}</code>
-                            . Study them with the normal reviewer (spaced repetition). When
-                            the deck is done for the day, you'll head back here.
-                        </p>
-                        <div class="actions">
-                            <Button on:click={studyCards}>
-                                Study cards in this deck
-                            </Button>
-                            <Button
-                                variant="outline"
-                                on:click={() => anotherTopic(state.topic)}
-                                disabled={loading}
-                            >
-                                Study a different topic
-                            </Button>
-                        </div>
-                        <div class="actions">
-                            {#if state.problemsUnlocked}
-                                <Button on:click={onProblemsClick} disabled={loading}>
-                                    Do problems for this topic
-                                </Button>
-                            {:else}
-                                <button
-                                    class="locked"
-                                    title={problemsHint(state)}
-                                    on:click={onProblemsClick}
-                                    disabled={loading}
-                                >
-                                    Do problems for this topic
-                                </button>
-                            {/if}
-                        </div>
-                        {#if gateMessage && !state.problemsUnlocked}
-                            <p class="note gate-note">{gateMessage}</p>
-                        {/if}
-                    </div>
+                <div class="loop-buttons">
+                    <Button size="sm" on:click={studyCards}>
+                        Study cards
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        on:click={() => anotherTopic(state.topic)}
+                        disabled={loading}
+                    >
+                        Change topic
+                    </Button>
+                    {#if state.problemsUnlocked}
+                        <Button size="sm" on:click={onProblemsClick} disabled={loading}>
+                            Do problems
+                        </Button>
+                    {:else}
+                        <button
+                            class="locked"
+                            title={problemsHint(state)}
+                            on:click={onProblemsClick}
+                            disabled={loading}
+                        >
+                            Do problems
+                        </button>
+                    {/if}
                 </div>
+                {#if gateMessage && !state.problemsUnlocked}
+                    <p class="note gate-note">{gateMessage}</p>
+                {/if}
             </Card>
         {:else if state.phase === "problems_offer"}
             <Card>
@@ -486,7 +434,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         </p>
                         <div class="actions">
                             <Button on:click={() => goProblems(state.topic)}>
-                                Do problems for this topic
+                                Do problems
                             </Button>
                             <Button
                                 variant="outline"
@@ -515,13 +463,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         justify-content: space-between;
         margin-bottom: 1.6rem;
         gap: 1rem;
-    }
-
-    .top-actions {
-        display: flex;
-        gap: 0.4rem;
-        align-items: center;
-        flex-wrap: wrap;
     }
 
     .note {
@@ -639,10 +580,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         color: ad.$fg;
     }
 
-    .why {
-        font-size: 0.84rem;
-        color: ad.$muted;
-        margin: 0;
+    .loop-buttons {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    // Equal-width buttons that share the row; text wraps inside if tight.
+    .loop-buttons > :global(button) {
+        flex: 1 1 0;
+        min-width: 0;
+        white-space: normal;
     }
 
     .step {
@@ -798,17 +747,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
-    .actions + .actions {
-        margin-top: 0.7rem;
-    }
-
     .locked {
         border: 1px solid ad.$border;
         border-radius: ad.$r-pill;
         min-height: 44px;
-        padding: 0.7rem 1.7rem;
+        padding: 0.5rem 1.1rem;
         font-family: ad.$font-body;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 600;
         color: ad.$muted;
         background: rgba(255, 255, 255, 0.04);

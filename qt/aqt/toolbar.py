@@ -358,6 +358,12 @@ class Toolbar:
                 id="stats",
             ),
             self.create_link(
+                "brew",
+                "My Brew",
+                self._brewLinkHandler,
+                id="brew",
+            ),
+            self.create_link(
                 "ankidote",
                 "Ankidote",
                 self._ankidoteLinkHandler,
@@ -442,6 +448,9 @@ class Toolbar:
 
     def _statsLinkHandler(self) -> None:
         self.mw.onAnkidoteStats()
+
+    def _brewLinkHandler(self) -> None:
+        self.mw.onAnkidoteBrew()
 
     def _ankidoteLinkHandler(self) -> None:
         self.mw.moveToState("ankidote")

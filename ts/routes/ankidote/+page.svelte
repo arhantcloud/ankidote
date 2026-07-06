@@ -40,13 +40,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     function viewStats(): void {
         goto("/ankidote/stats");
     }
-
-    const tradeoffs = [
-        { cost: "+6 min / session", gain: "mistakes reviewed, not repeated" },
-        { cost: "+20 s / question", gain: "every answer choice ranked" },
-        { cost: "+15 s / card", gain: "you explain why, so it transfers" },
-        { cost: "+25 min / week", gain: "your score range stays honest" },
-    ];
 </script>
 
 <Shell align="top" max="60rem">
@@ -77,7 +70,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </h1>
 
         <p class="sub">
-            One dose of diagnostic, a steady drip of the exact cards and problems your
+            One dose of diagnostic, and a steady drip of the exact cards and problems your
             score needs.
         </p>
 
@@ -95,20 +88,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 <Button size="lg" on:click={buildIt}>Build your Ankidote</Button>
             {/if}
         </div>
-
-        <div class="chips">
-            {#each tradeoffs as t}
-                <span class="chip">
-                    <b>{t.cost}</b>
-                    <span class="arrow">&rarr;</span>
-                    {t.gain}
-                </span>
-            {/each}
-        </div>
     </section>
 
     <footer>
-        <p>Every tradeoff above is sourced. Ask to see the receipts.</p>
         {#if loaded}
             <p class="account">
                 {#if email}Signed in as {email}.
@@ -164,7 +146,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
     .core {
-        filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.45));
+        filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.45));
         @include ad.motion-safe {
             animation: ad-float 8s ease-in-out infinite;
         }
@@ -205,7 +187,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .wordmark {
         font-family: ad.$font-heading;
-        font-size: 1.6rem;
+        font-size: 2rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         margin-bottom: 1.4rem;
@@ -244,39 +226,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         justify-content: center;
         margin-bottom: 2.6rem;
         min-height: 44px;
-    }
-
-    // Four tradeoff tiles laid out as 2 rows of 2.
-    .chips {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.6rem;
-        max-width: 40rem;
-        width: 100%;
-    }
-
-    .chip {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        text-align: center;
-        font-family: ad.$font-mono;
-        font-size: 0.76rem;
-        letter-spacing: 0.02em;
-        padding: 0.6rem 0.9rem;
-        border-radius: ad.$r-card-sm;
-        color: ad.$muted;
-        @include ad.glass(rgba(255, 255, 255, 0.04));
-
-        b {
-            color: ad.$green;
-            font-weight: 500;
-        }
-        .arrow {
-            color: ad.$lime;
-            margin: 0 0.15rem;
-        }
     }
 
     footer {

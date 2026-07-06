@@ -177,25 +177,16 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     {#if phase === "intro"}
         <Card>
             <div class="intro">
-                <Badge variant="green" dot>Ankidote diagnostic</Badge>
-                <h1>Find out where you stand.</h1>
+                <h1>GMAT Diagnostic</h1>
                 <p class="sub">
-                    An adaptive test: each question is picked to teach us the most about
-                    your ability, so it stays short. You'll get a GMAT score range,
-                    overall and per topic, not a false precision point
-                    score.
+                    A short adaptive test across the GMAT's three sections — Quant,
+                    Verbal, and Data Insights.
                 </p>
-                <ul class="facts">
-                    <li>
-                        <b>Adaptive length</b>: it stops as soon as your score range is tight enough
-                    </li>
-                    <li>
-                        <b>Quant, Verbal, Data Insights</b>: all three sections
-                    </li>
-                    <li>
-                        <b>No going back</b>: just like test day
-                    </li>
-                </ul>
+                <div class="tiles">
+                    <div class="tile">Adaptive test</div>
+                    <div class="tile">Precise Estimate</div>
+                    <div class="tile">Really Quick</div>
+                </div>
                 <Button on:click={begin} disabled={loading}>
                     {loading ? "Preparing…" : "Start the diagnostic"}
                 </Button>
@@ -208,10 +199,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         Skip for now &rarr;
                     </button>
                     <p class="skip-warn">
-                        Heads up: skipping means your starting score is an
-                        <b>extremely vague estimate</b>, not a measurement. Your
-                        plan and predictions stay rough until you take the
-                        diagnostic. You can do it anytime.
+                        Heads up, skipping means an extremely vague estimate.
                     </p>
                 </div>
                 {#if errorMessage}
@@ -334,26 +322,25 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin: 0 0 1.4rem;
     }
 
-    .facts {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 1.8rem;
+    .tiles {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.7rem;
+        margin: 0 0 1.6rem;
+    }
 
-        li {
-            padding: 0.55rem 0;
-            border-bottom: 1px solid ad.$border;
-            font-size: 0.95rem;
-            color: ad.$muted;
-
-            &:last-child {
-                border-bottom: none;
-            }
-
-            b {
-                color: ad.$fg;
-                font-weight: 600;
-            }
-        }
+    .tile {
+        flex: 0 1 auto;
+        padding: 0.95rem 1.1rem;
+        border: 1px solid ad.$border;
+        border-radius: ad.$r-input;
+        background: rgba(0, 0, 0, 0.2);
+        text-align: center;
+        font-family: ad.$font-heading;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: ad.$fg;
     }
 
     .status {
@@ -516,7 +503,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         background: rgba(0, 0, 0, 0.2);
         font-size: 0.82rem;
         line-height: 1.5;
-        color: ad.$muted;
+        color: #e0a758;
 
         b {
             color: #e0a758;

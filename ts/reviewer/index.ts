@@ -172,6 +172,9 @@ export function _showQuestion(q: string, a: string, bodyclass: string): void {
                 window.scrollTo(0, 0);
 
                 document.body.className = bodyclass;
+
+                // reset the flashcard so the next reveal can flip cleanly
+                document.getElementById("ad-flashcard")?.classList.remove("ad-flip");
             },
             function() {
                 // focus typing area if visible
@@ -206,7 +209,14 @@ export function _showAnswer(a: string, bodyclass: string): void {
                 allImagesLoaded().then(scrollToAnswer);
             },
             function() {
-                /* noop */
+                // flip the flashcard over to reveal the answer
+                const card = document.getElementById("ad-flashcard");
+                if (card) {
+                    card.classList.remove("ad-flip");
+                    // force a reflow so the animation restarts every reveal
+                    void card.offsetWidth;
+                    card.classList.add("ad-flip");
+                }
             },
         )
     );

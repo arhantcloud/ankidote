@@ -335,7 +335,11 @@ class Reviewer:
 <div id="_mark" hidden>&#x2605;</div>
 <div id="_flag" hidden>&#x2691;</div>
 {fade}
-<div id="qa" dir="auto"></div>
+<div class="ad-review">
+    <div class="ad-flashcard" id="ad-flashcard">
+        <div id="qa" dir="auto"></div>
+    </div>
+</div>
 {extra}
 """
 
@@ -567,6 +571,9 @@ class Reviewer:
     def _after_answering(self, ease: Literal[1, 2, 3, 4]) -> None:
         gui_hooks.reviewer_did_answer_card(self, self.card, ease)
         self._answeredIds.append(self.card.id)
+        # Re-check the Ankidote problem-gate after every answer so the
+        # "Problems unlocked" CTA lights up the moment enough cards mature.
+        self._ankidote_refresh_loop_button()
         if not self.check_timebox():
             self.nextCard()
 
@@ -839,13 +846,26 @@ class Reviewer:
             print("ankidote: loop button fell back:", exc)
         return plain
 
+    def _ankidote_refresh_loop_button(self) -> None:
+        """Re-evaluate the problem-gate and update the bottom-bar Ankidote
+        button in place, so 'Problems unlocked' appears as soon as enough cards
+        have matured — without having to leave and re-enter the study loop."""
+        try:
+            html = self._ankidote_loop_button()
+            self.bottom.web.eval(
+                f"(function(){{var el=document.getElementById('ankidote-loop-slot');"
+                f"if(el){{el.innerHTML={json.dumps(html)};}}}})();"
+            )
+        except Exception as exc:
+            print("ankidote: loop button refresh skipped:", exc)
+
     def _bottomHTML(self) -> str:
         return """
 <center id=outer>
 <table id=innertable width=100%% cellspacing=0 cellpadding=0>
 <tr>
 <td align=start valign=top class=stat>
-%(ankidoteLoop)s
+<span id=ankidote-loop-slot>%(ankidoteLoop)s</span>
 <button title="%(editkey)s" onclick="pycmd('edit');">%(edit)s</button></td>
 <td align=center valign=top id=middle>
 </td>
